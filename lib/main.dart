@@ -40,22 +40,34 @@ class HomePage extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(
-              '$studentId - $studentName',
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Belajar Widget Tree',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            const CircleAvatar(
+              radius: 46,
+              backgroundImage: AssetImage(
+                'assets/images/amel.jpeg',
               ),
             ),
             const SizedBox(height: 12),
-            const Icon(
-              Icons.widgets,
-              size: 48,
+            Text(
+              studentName,
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(studentId),
+            const SizedBox(height: 8),
+            const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.widgets),
+                SizedBox(width: 8),
+                Text('Belajar Widget Flutter'),
+              ],
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Saya tertarik mempelajari pengembangan aplikasi mobile menggunakan Flutter.',
+              textAlign: TextAlign.center,
             ),
           ],
         ),
