@@ -1,9 +1,7 @@
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
-
-const String studentId = '2415051042';
-const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 
 Future<Map<String, dynamic>> loadStudentData() async {
   final jsonString = await rootBundle.loadString(
@@ -16,34 +14,6 @@ Future<Map<String, dynamic>> loadStudentData() async {
 void main() {
   runApp(const MyApp());
 }
-
-// Collection Dart
-final List<Map<String, dynamic>> topics = [
-  {
-    'title': 'Git & GitHub',
-    'subtitle': 'Version control',
-    'done': true,
-    'icon': Icons.account_tree,
-  },
-  {
-    'title': 'Dart Fundamentals',
-    'subtitle': 'Language basics',
-    'done': true,
-    'icon': Icons.code,
-  },
-  {
-    'title': 'Flutter UI Fundamentals',
-    'subtitle': 'Widgets & layout',
-    'done': false,
-    'icon': Icons.widgets,
-  },
-  {
-    'title': '$studentId - $studentName',
-    'subtitle': 'Pemilik aplikasi',
-    'done': false,
-    'icon': Icons.person,
-  },
-];
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -59,112 +29,121 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const DashboardPage(),
     );
   }
 }
 
-class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+class DashboardPage extends StatefulWidget {
+  const DashboardPage({super.key});
+
+  @override
+  State<DashboardPage> createState() => _DashboardPageState();
+}
+
+class _DashboardPageState extends State<DashboardPage> {
+  late Future<Map<String, dynamic>> studentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+
+    studentFuture = loadStudentData();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final int completed =
-        topics.where((item) => item['done'] == true).length;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Learning Dashboard'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Identitas mahasiswa
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    Text(
-                      studentName,
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: studentFuture,
+        builder: (context, snapshot) {
+          // Loading
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          // Error
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Gagal memuat data: ${snapshot.error}',
+              ),
+            );
+          }
+
+          // Data
+          final data = snapshot.data!;
+
+          final student =
+              data['student'] as Map<String, dynamic>;
+
+          final courses =
+              data['courses'] as List<dynamic>;
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                // Identitas mahasiswa dari JSON
+                Card(
+                  child: ListTile(
+                    title: Text(
+                      student['name'] as String,
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
+                    ),
+                    subtitle: Text(
+                      student['nim'] as String,
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 4),
-                    Text(studentId),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-            // Tahap 11: Ringkasan
-            Row(
-              children: [
-                const Icon(Icons.menu_book),
-                const SizedBox(width: 8),
-                Text(
-                  '$completed dari ${topics.length} topik selesai',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                // Daftar courses dari JSON
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course =
+                          courses[index] as Map<String, dynamic>;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          vertical: 4,
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            child: Text(
+                              course['code']
+                                  .toString()
+                                  .substring(3),
+                            ),
+                          ),
+                          title: Text(
+                            course['title'] as String,
+                          ),
+                          subtitle: Text(
+                            course['code'] as String,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 4),
-
-            // List Tahap 11
-            Expanded(
-              child: ListView.builder(
-                itemCount: topics.length,
-                itemBuilder: (context, index) {
-                  final item = topics[index];
-                  final bool isDone = item['done'] == true;
-
-                  return Card(
-                    margin: const EdgeInsets.symmetric(
-                      vertical: 4,
-                    ),
-                    child: ListTile(
-                      leading: Icon(
-                        isDone
-                            ? Icons.check_circle
-                            : Icons.schedule,
-                        color: isDone
-                            ? Colors.green
-                            : Colors.orange,
-                      ),
-                      title: Text(
-                        item['title'] as String,
-                      ),
-                      subtitle: Text(
-                        item['subtitle'] as String,
-                      ),
-                      trailing: Text(
-                        isDone ? 'Selesai' : 'Belum',
-                        style: TextStyle(
-                          color: isDone
-                              ? Colors.green
-                              : Colors.orange,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
