@@ -36,22 +36,26 @@ class HomePage extends StatelessWidget {
       ),
       body: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            Text(
+              '$studentId - $studentName',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
             const Text(
-              'Learning Dashboard',
+              'Belajar Widget Tree',
               style: TextStyle(
-                fontSize: 28,
+                fontSize: 24,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 20),
-            Text(
-              '$studentId - $studentName',
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-              textAlign: TextAlign.center,
+            const SizedBox(height: 12),
+            const Icon(
+              Icons.widgets,
+              size: 48,
             ),
           ],
         ),
