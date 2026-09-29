@@ -7,8 +7,40 @@ void main() {
   runApp(const MyApp());
 }
 
+// Collection Dart
+final List<Map<String, dynamic>> topics = [
+  {
+    'title': 'Git & GitHub',
+    'subtitle': 'Version control',
+    'done': true,
+    'icon': Icons.account_tree,
+  },
+  {
+    'title': 'Dart Fundamentals',
+    'subtitle': 'Language basics',
+    'done': true,
+    'icon': Icons.code,
+  },
+  {
+    'title': 'Flutter UI Fundamentals',
+    'subtitle': 'Widgets & layout',
+    'done': false,
+    'icon': Icons.widgets,
+  },
+  {
+    'title': '$studentId - $studentName',
+    'subtitle': 'Pemilik aplikasi',
+    'done': false,
+    'icon': Icons.person,
+  },
+];
+
 // Function untuk membuat kartu statistik
-Widget buildStatCard(String value, String label, IconData icon) {
+Widget buildStatCard(
+  String value,
+  String label,
+  IconData icon,
+) {
   return Expanded(
     child: Card(
       child: Padding(
@@ -29,76 +61,6 @@ Widget buildStatCard(String value, String label, IconData icon) {
       ),
     ),
   );
-}
-
-// StatefulWidget untuk input dan setState
-class GreetingCard extends StatefulWidget {
-  const GreetingCard({super.key});
-
-  @override
-  State<GreetingCard> createState() => _GreetingCardState();
-}
-
-class _GreetingCardState extends State<GreetingCard> {
-  final TextEditingController controller = TextEditingController();
-
-  String message = 'Belum ada pesan';
-
-  @override
-  void dispose() {
-    controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(
-              '$studentId - $studentName',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: controller,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Masukkan pesan',
-              ),
-            ),
-
-            const SizedBox(height: 12),
-
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  message = controller.text.trim().isEmpty
-                      ? 'Input masih kosong'
-                      : controller.text.trim();
-                });
-              },
-              child: const Text('Tampilkan'),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class MyApp extends StatelessWidget {
@@ -129,92 +91,160 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Learning Dashboard'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              // Card informasi mahasiswa
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    children: [
-                      const CircleAvatar(
-                        radius: 46,
-                        backgroundImage: AssetImage(
-                          'assets/images/amel.jpeg',
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      Text(
-                        studentName,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-
-                      const SizedBox(height: 4),
-
-                      Text(studentId),
-
-                      const SizedBox(height: 8),
-
-                      const Row(
-                        mainAxisSize: MainAxisSize.min,
+      body: Column(
+        children: [
+          // Bagian atas
+          Expanded(
+            flex: 3,
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  // Card informasi mahasiswa
+                  Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
                         children: [
-                          Icon(Icons.widgets),
-                          SizedBox(width: 8),
-                          Text('Belajar Widget Flutter'),
+                          // Foto
+                          const CircleAvatar(
+                            radius: 46,
+                            backgroundImage: AssetImage(
+                              'assets/images/amel.jpeg',
+                            ),
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          Text(
+                            studentName,
+                            style: const TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+
+                          const SizedBox(height: 4),
+
+                          Text(studentId),
+
+                          const SizedBox(height: 8),
+
+                          const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.widgets),
+                              SizedBox(width: 8),
+                              Text('Belajar Widget Flutter'),
+                            ],
+                          ),
+
+                          const SizedBox(height: 8),
+
+                          const Text(
+                            'Saya tertarik mempelajari pengembangan aplikasi mobile menggunakan Flutter.',
+                            textAlign: TextAlign.center,
+                          ),
                         ],
                       ),
+                    ),
+                  ),
 
-                      const SizedBox(height: 8),
+                  const SizedBox(height: 16),
 
-                      const Text(
-                        'Saya tertarik mempelajari pengembangan aplikasi mobile menggunakan Flutter.',
-                        textAlign: TextAlign.center,
+                  // Statistik reusable
+                  Row(
+                    children: [
+                      buildStatCard(
+                        '8',
+                        'Widget',
+                        Icons.widgets,
+                      ),
+                      buildStatCard(
+                        '4',
+                        'Layout',
+                        Icons.view_quilt,
+                      ),
+                      buildStatCard(
+                        '1',
+                        'State',
+                        Icons.sync,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // Tahap 10: Collection + ListView.builder
+          Expanded(
+            flex: 2,
+            child: Column(
+              children: [
+                // Judul daftar
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 4,
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.menu_book),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Daftar Topik Pembelajaran',
+                        style: Theme.of(context)
+                            .textTheme
+                            .titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
                       ),
                     ],
                   ),
                 ),
-              ),
 
-              const SizedBox(height: 16),
+                // ListView.builder
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: topics.length,
+                    itemBuilder: (context, index) {
+                      final item = topics[index];
 
-              // Statistik menggunakan function reusable
-              Row(
-                children: [
-                  buildStatCard(
-                    '8',
-                    'Widget',
-                    Icons.widgets,
+                      final IconData icon =
+                          item['icon'] ?? Icons.school;
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 4,
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            child: Icon(icon),
+                          ),
+                          title: Text(
+                            item['title'] as String,
+                          ),
+                          subtitle: Text(
+                            item['subtitle'] as String,
+                          ),
+                          trailing: Icon(
+                            item['done'] == true
+                                ? Icons.check_circle
+                                : Icons.circle_outlined,
+                          ),
+                        ),
+                      );
+                    },
                   ),
-                  buildStatCard(
-                    '4',
-                    'Layout',
-                    Icons.view_quilt,
-                  ),
-                  buildStatCard(
-                    '1',
-                    'State',
-                    Icons.sync,
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-
-              // Tahap 9: Input dan State
-              const GreetingCard(),
-            ],
+                ),
+              ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
