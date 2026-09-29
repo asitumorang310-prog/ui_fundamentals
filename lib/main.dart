@@ -13,31 +13,47 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter UI Fundamentals',
+      title: 'Learning Dashboard',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.deepPurple,
         ),
+        useMaterial3: true,
       ),
-      home: const MyHomePage(),
+      home: const HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatelessWidget {
-  const MyHomePage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Flutter UI Fundamentals'),
+        title: const Text('Learning Dashboard'),
       ),
       body: Center(
-        child: Text(
-          '$studentId - $studentName',
-          style: Theme.of(context).textTheme.headlineMedium,
-          textAlign: TextAlign.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Learning Dashboard',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              '$studentId - $studentName',
+              style: const TextStyle(
+                fontSize: 20,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
       ),
     );
