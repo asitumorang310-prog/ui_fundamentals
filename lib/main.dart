@@ -46,7 +46,9 @@ class HomePage extends StatelessWidget {
                 'assets/images/amel.jpeg',
               ),
             ),
+
             const SizedBox(height: 12),
+
             Text(
               studentName,
               style: const TextStyle(
@@ -54,8 +56,11 @@ class HomePage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
               ),
             ),
+
             Text(studentId),
+
             const SizedBox(height: 8),
+
             const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -64,10 +69,57 @@ class HomePage extends StatelessWidget {
                 Text('Belajar Widget Flutter'),
               ],
             ),
+
             const SizedBox(height: 8),
+
             const Text(
               'Saya tertarik mempelajari pengembangan aplikasi mobile menggunakan Flutter.',
               textAlign: TextAlign.center,
+            ),
+
+            const SizedBox(height: 20),
+
+            // Statistik
+            const Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                Column(
+                  children: [
+                    Text(
+                      '8',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('Widget'),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                      '4',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('Layout'),
+                  ],
+                ),
+                Column(
+                  children: [
+                    Text(
+                      '1',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text('State'),
+                  ],
+                ),
+              ],
             ),
           ],
         ),
