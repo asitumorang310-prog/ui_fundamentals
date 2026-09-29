@@ -47,8 +47,81 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   void initState() {
     super.initState();
-
     studentFuture = loadStudentData();
+  }
+
+  // Reusable Widget 1: Profile
+  Widget buildProfileCard(Map<String, dynamic> student) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            const CircleAvatar(
+              radius: 35,
+              backgroundImage: AssetImage(
+                'assets/images/amel.jpeg',
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student['name'] as String,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    student['nim'] as String,
+                  ),
+                  Text(
+                    'Semester ${student['semester'] ?? 5}',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Reusable Widget 2: Summary Card
+  Widget buildSummaryCard(
+    IconData icon,
+    String title,
+    String value,
+  ) {
+    return Expanded(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Icon(icon, size: 30),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -61,7 +134,8 @@ class _DashboardPageState extends State<DashboardPage> {
         future: studentFuture,
         builder: (context, snapshot) {
           // Loading
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -76,7 +150,6 @@ class _DashboardPageState extends State<DashboardPage> {
             );
           }
 
-          // Data
           final data = snapshot.data!;
 
           final student =
@@ -85,55 +158,93 @@ class _DashboardPageState extends State<DashboardPage> {
           final courses =
               data['courses'] as List<dynamic>;
 
+          final totalCredits = courses.fold<int>(
+            0,
+            (sum, course) =>
+                sum + (course['credits'] as int),
+          );
+
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Identitas mahasiswa dari JSON
-                Card(
-                  child: ListTile(
-                    title: Text(
-                      student['name'] as String,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                      ),
+                // Profile / Identity
+                buildProfileCard(student),
+
+                const SizedBox(height: 8),
+
+                // Summary Row
+                Row(
+                  children: [
+                    buildSummaryCard(
+                      Icons.menu_book,
+                      'Jumlah Mata Kuliah',
+                      '${courses.length}',
                     ),
-                    subtitle: Text(
-                      student['nim'] as String,
-                      textAlign: TextAlign.center,
+                    const SizedBox(width: 8),
+                    buildSummaryCard(
+                      Icons.school,
+                      'Total SKS',
+                      '$totalCredits',
                     ),
-                  ),
+                  ],
                 ),
 
                 const SizedBox(height: 8),
 
-                // Daftar courses dari JSON
+                // List Courses
                 Expanded(
                   child: ListView.builder(
                     itemCount: courses.length,
                     itemBuilder: (context, index) {
                       final course =
-                          courses[index] as Map<String, dynamic>;
+                          courses[index]
+                              as Map<String, dynamic>;
+
+                      final status =
+                          course['status'] as String;
+
+                      final bool isDone =
+                          status == 'done';
 
                       return Card(
                         margin: const EdgeInsets.symmetric(
                           vertical: 4,
                         ),
                         child: ListTile(
-                          leading: CircleAvatar(
-                            child: Text(
-                              course['code']
-                                  .toString()
-                                  .substring(3),
-                            ),
+                          leading: Icon(
+                            isDone
+                                ? Icons.check_circle
+                                : status == 'active'
+                                    ? Icons.play_circle
+                                    : Icons.schedule,
+                            color: isDone
+                                ? Colors.green
+                                : status == 'active'
+                                    ? Colors.blue
+                                    : Colors.orange,
                           ),
                           title: Text(
                             course['title'] as String,
                           ),
                           subtitle: Text(
-                            course['code'] as String,
+                            '${course['code']} • '
+                            '${course['credits']} SKS',
+                          ),
+                          trailing: Text(
+                            isDone
+                                ? 'Selesai'
+                                : status == 'active'
+                                    ? 'Aktif'
+                                    : 'Belum',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDone
+                                  ? Colors.green
+                                  : status == 'active'
+                                      ? Colors.blue
+                                      : Colors.orange,
+                            ),
                           ),
                         ),
                       );
