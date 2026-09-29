@@ -7,12 +7,37 @@ void main() {
   runApp(const MyApp());
 }
 
+// Function untuk membuat kartu statistik
+Widget buildStatCard(String value, String label, IconData icon) {
+  return Expanded(
+    child: Card(
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          children: [
+            Icon(icon),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(label),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Learning Dashboard',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -55,7 +80,7 @@ class HomePage extends StatelessWidget {
                     Text(
                       studentName,
                       style: const TextStyle(
-                        fontSize: 22,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -82,56 +107,25 @@ class HomePage extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Ringkasan
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: Colors.deepPurple,
+            // Statistik menggunakan function reusable
+            Row(
+              children: [
+                buildStatCard(
+                  '8',
+                  'Widget',
+                  Icons.widgets,
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Column(
-                    children: [
-                      Text(
-                        '8',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text('Widget'),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        '4',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text('Layout'),
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      Text(
-                        '1',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      Text('State'),
-                    ],
-                  ),
-                ],
-              ),
+                buildStatCard(
+                  '4',
+                  'Layout',
+                  Icons.view_quilt,
+                ),
+                buildStatCard(
+                  '1',
+                  'State',
+                  Icons.sync,
+                ),
+              ],
             ),
           ],
         ),
