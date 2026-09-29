@@ -5,7 +5,7 @@ import 'package:flutter/services.dart' show rootBundle;
 
 Future<Map<String, dynamic>> loadStudentData() async {
   final jsonString = await rootBundle.loadString(
-    'assets/data/student_data.json',
+    'assets/data/student_data.json'
   );
 
   return jsonDecode(jsonString) as Map<String, dynamic>;
