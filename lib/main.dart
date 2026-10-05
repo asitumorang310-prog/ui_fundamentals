@@ -233,21 +233,33 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// TAHAP 7: Navigator.push() dan Navigator.pop() (Tampilan Dirapikan)
-// ============================================================
+// TAHAP 8: Passing Data dari List ke Detail Page
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  late Future<Map<String, dynamic>> studentFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    studentFuture = loadStudentData();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Home Page - Navigasi'),
+        title: const Text('Course Explorer - Home'),
         elevation: 2,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
-        future: loadStudentData(),
+        future: studentFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -259,73 +271,96 @@ class HomePage extends StatelessWidget {
 
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
+          final courses = data['courses'] as List<dynamic>;
 
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header Identitas Mahasiswa
+                Card(
+                  elevation: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        const CircleAvatar(
+                          radius: 30,
+                          backgroundColor: Colors.deepPurple,
+                          child: Icon(Icons.person, color: Colors.white, size: 30),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              student['name'] as String,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('NIM: ${student['nim']}'),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const CircleAvatar(
-                        radius: 40,
-                        backgroundColor: Colors.deepPurpleAccent,
-                        child: Icon(Icons.person, size: 40, color: Colors.white),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        student['name'] as String,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'NIM: ${student['nim']}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
+                const SizedBox(height: 16),
+                const Text(
+                  'Daftar Mata Kuliah:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+
+                // ListView Course yang dapat ditekan untuk mengirim data
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: courses.length,
+                    itemBuilder: (context, index) {
+                      final course = courses[index] as Map<String, dynamic>;
+                      final status = course['status'] as String;
+                      final bool isDone = status == 'done';
+
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: Icon(
+                            isDone
+                                ? Icons.check_circle
+                                : status == 'active'
+                                    ? Icons.play_circle
+                                    : Icons.schedule,
+                            color: isDone
+                                ? Colors.green
+                                : status == 'active'
+                                    ? Colors.blue
+                                    : Colors.orange,
+                          ),
+                          title: Text(course['title'] as String),
+                          subtitle: Text('${course['code']} • ${course['credits']} SKS'),
+                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                          onTap: () {
+                            // Mengirim data Map course ke CourseDetailPage melalui constructor
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => const DetailPage(),
+                                builder: (_) => CourseDetailPage(
+                                  course: course,
+                                  student: student,
+                                ),
                               ),
                             );
                           },
-                          icon: const Icon(Icons.arrow_forward_rounded),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          label: const Text(
-                            'Buka Detail',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
                         ),
-                      ),
-                    ],
+                      );
+                    },
                   ),
                 ),
-              ),
+              ],
             ),
           );
         },
@@ -334,73 +369,67 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+class CourseDetailPage extends StatelessWidget {
+  final Map<String, dynamic> course;
+  final Map<String, dynamic> student;
+
+  const CourseDetailPage({
+    super.key,
+    required this.course,
+    required this.student,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final status = course['status'] as String;
+    final bool isDone = status == 'done';
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Page'),
+        title: Text(course['title'] as String),
         elevation: 2,
       ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            elevation: 4,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.info_outline_rounded,
-                    size: 50,
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Card(
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Detail Mata Kuliah',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
                     color: Colors.deepPurple,
                   ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Halaman Detail Navigasi',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Halaman ini berada di atas stack navigasi. Anda dapat kembali menggunakan tombol pop di bawah atau tombol back di AppBar.',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.arrow_back_rounded),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple.shade50,
-                        foregroundColor: Colors.deepPurple,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      label: const Text(
-                        'Kembali dengan Pop',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+                const Divider(height: 24),
+                Text(
+                  'Judul: ${course['title']}',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text('Kode Mata Kuliah: ${course['code']}'),
+                const SizedBox(height: 8),
+                Text('Jumlah SKS: ${course['credits']} SKS'),
+                const SizedBox(height: 8),
+                Text('Status: ${isDone ? "Selesai" : status == "active" ? "Aktif" : "Belum"}'),
+                const Divider(height: 32),
+                const Text(
+                  'Informasi Mahasiswa:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                Text('Nama: ${student['name']}'),
+                Text('NIM: ${student['nim']}'),
+              ],
             ),
           ),
         ),
