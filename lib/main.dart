@@ -234,41 +234,68 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 // ============================================================
-// TAHAP 4: Expanded, Flexible, dan Wrap
+// TAHAP 5: GridView Responsif
 // ============================================================
+
+class CourseCard extends StatelessWidget {
+  final Map<String, dynamic> course;
+  const CourseCard({super.key, required this.course});
+
+  @override
+  Widget build(BuildContext context) {
+    final status = course['status'] as String;
+    final bool isDone = status == 'done';
+
+    return Card(
+      elevation: 2,
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              isDone
+                  ? Icons.check_circle
+                  : status == 'active'
+                      ? Icons.play_circle
+                      : Icons.schedule,
+              color: isDone
+                  ? Colors.green
+                  : status == 'active'
+                      ? Colors.blue
+                      : Colors.orange,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              course['title'] as String,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            const SizedBox(height: 4),
+            Text('${course['code']} • ${course['credits']} SKS'),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class ResponsiveTestPage extends StatelessWidget {
   const ResponsiveTestPage({super.key});
 
-  Widget buildBox(String text, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
-      ),
-    );
+  int columnsFor(double width) {
+    if (width < 600) return 1;
+    if (width < 840) return 2;
+    return 3;
   }
 
   @override
   Widget build(BuildContext context) {
-    final List<String> skills = [
-      'Flutter',
-      'Dart',
-      'UI/UX Design',
-      'Mobile Programming',
-      'Git & GitHub',
-      'State Management',
-    ];
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4 - Expanded & Wrap'),
+        title: const Text('Tahap 5 - GridView Responsif'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
@@ -283,13 +310,14 @@ class ResponsiveTestPage extends StatelessWidget {
 
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
+          final courses = data['courses'] as List<dynamic>;
 
           return Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Identitas Mahasiswa
+                // Header Nama dan NIM Mahasiswa
                 Text(
                   '${student['nim']} - ${student['name']}',
                   style: const TextStyle(
@@ -297,44 +325,25 @@ class ResponsiveTestPage extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 16),
-
-                // 1. Bagian Expanded dengan perbandingan flex 2:1
-                const Text(
-                  'Demo Expanded (Flex 2 : 1):',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: buildBox('Panel A (Flex 2)', Colors.deepPurple),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: buildBox('Panel B (Flex 1)', Colors.orange),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-
-                // 2. Bagian Wrap dengan minimal 6 Chip skill
-                const Text(
-                  'Demo Wrap (Skill Chips):',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: skills
-                      .map((e) => Chip(
-                            label: Text(e),
-                            backgroundColor: Colors.deepPurple.shade50,
-                          ))
-                      .toList(),
+                const SizedBox(height: 12),
+                
+                // GridView Responsif menggunakan LayoutBuilder
+                Expanded(
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return GridView.builder(
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: columnsFor(constraints.maxWidth),
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 3,
+                        ),
+                        itemCount: courses.length,
+                        itemBuilder: (context, index) =>
+                            CourseCard(course: courses[index] as Map<String, dynamic>),
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
