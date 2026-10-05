@@ -1,11 +1,10 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 
 Future<Map<String, dynamic>> loadStudentData() async {
   final jsonString = await rootBundle.loadString(
-    'assets/data/student_data.json'
+    'assets/data/student_data.json',
   );
 
   return jsonDecode(jsonString) as Map<String, dynamic>;
@@ -29,7 +28,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const DashboardPage(),
+      home: const ResponsiveTestPage(),
     );
   }
 }
@@ -233,7 +232,7 @@ class _DashboardPageState extends State<DashboardPage> {
                           ),
                           trailing: Text(
                             isDone
-                                ? 'Selesai'
+                                ? 'Selesaii'
                                 : status == 'active'
                                     ? 'Aktif'
                                     : 'Belum',
@@ -252,6 +251,65 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+
+// ============================================================
+// TAHAP 1: Mengamati Masalah Layout yang Tidak Responsif
+// ============================================================
+
+class ResponsiveTestPage extends StatelessWidget {
+  const ResponsiveTestPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tahap 1 - Responsive Layout'),
+      ),
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: loadStudentData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState ==
+              ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Text(
+                'Gagal memuat data: ${snapshot.error}',
+              ),
+            );
+          }
+
+          final data = snapshot.data!;
+          final student =
+              data['student'] as Map<String, dynamic>;
+
+          // Mengganti Center dengan Padding agar posisi container berada di atas rata kiri
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Container(
+              width: 500,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.deepPurple.shade100,
+                border: Border.all(color: Colors.deepPurple, width: 2),
+              ),
+              child: Text(
+                '${student['nim']} - ${student['name']}',
+                textAlign: TextAlign.left,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           );
         },
