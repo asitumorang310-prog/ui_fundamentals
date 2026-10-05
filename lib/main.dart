@@ -261,7 +261,7 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
 // ============================================================
-// TAHAP 1: Mengamati Masalah Layout yang Tidak Responsif
+// TAHAP 2: MediaQuery - Membaca Karakteristik Layar
 // ============================================================
 
 class ResponsiveTestPage extends StatelessWidget {
@@ -269,15 +269,18 @@ class ResponsiveTestPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Membaca ukuran layar dan orientasi menggunakan MediaQuery
+    final size = MediaQuery.of(context).size;
+    final orientation = MediaQuery.of(context).orientation;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 1 - Responsive Layout'),
+        title: const Text('Tahap 2 - MediaQuery'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
@@ -292,24 +295,42 @@ class ResponsiveTestPage extends StatelessWidget {
           }
 
           final data = snapshot.data!;
-          final student =
-              data['student'] as Map<String, dynamic>;
+          final student = data['student'] as Map<String, dynamic>;
 
-          // Mengganti Center dengan Padding agar posisi container berada di atas rata kiri
+          // Kondisi breakpoint sederhana sesuai instruksi tahap 2
+          final layoutCategory = size.width < 600 ? 'Compact' : 'Wide';
+
           return Padding(
             padding: const EdgeInsets.all(16.0),
-            child: Container(
-              width: 500,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.deepPurple.shade100,
-                border: Border.all(color: Colors.deepPurple, width: 2),
-              ),
-              child: Text(
-                '${student['nim']} - ${student['name']}',
-                textAlign: TextAlign.left,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Identitas Mahasiswa
+                Text(
+                  'NIM : ${student['nim']}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                Text(
+                  'Nama: ${student['name']}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const Divider(height: 24),
+                
+                // Informasi MediaQuery
+                Text('Width: ${size.width.toStringAsFixed(0)} px'),
+                const SizedBox(height: 4),
+                Text('Height: ${size.height.toStringAsFixed(0)} px'),
+                const SizedBox(height: 4),
+                Text('Orientation: $orientation'),
+                const SizedBox(height: 4),
+                Text(
+                  'Layout Category: $layoutCategory',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: size.width < 600 ? Colors.blue : Colors.green,
+                  ),
+                ),
+              ],
             ),
           );
         },
