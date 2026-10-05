@@ -234,10 +234,6 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 
-
-// ============================================================
-// RESPONSIVE SHELL (Adaptive Navigation)
-// ============================================================
 class ResponsiveShell extends StatefulWidget {
   const ResponsiveShell({super.key});
 
@@ -279,7 +275,7 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
         final List<Widget> pages = [
           HomePage(student: student, courses: courses),
           CoursesPage(courses: courses, student: student),
-          FeedbackPage(student: student),
+          DebuggingErrorPage(student: student),
           ProfilePage(student: student),
         ];
 
@@ -305,9 +301,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                       label: 'Courses',
                     ),
                     NavigationDestination(
-                      icon: Icon(Icons.feedback_outlined),
-                      selectedIcon: Icon(Icons.feedback),
-                      label: 'Feedback',
+                      icon: Icon(Icons.bug_report_outlined),
+                      selectedIcon: Icon(Icons.bug_report),
+                      label: 'Debug',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.person_outline),
@@ -340,9 +336,9 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
                         label: Text('Courses'),
                       ),
                       NavigationRailDestination(
-                        icon: Icon(Icons.feedback_outlined),
-                        selectedIcon: Icon(Icons.feedback),
-                        label: Text('Feedback'),
+                        icon: Icon(Icons.bug_report_outlined),
+                        selectedIcon: Icon(Icons.bug_report),
+                        label: Text('Debug'),
                       ),
                       NavigationRailDestination(
                         icon: Icon(Icons.person_outline),
@@ -364,6 +360,129 @@ class _ResponsiveShellState extends State<ResponsiveShell> {
 }
 
 // ============================================================
+// TAHAP 16: DEBUGGING & ERROR HANDLING PAGE
+// ============================================================
+class DebuggingErrorPage extends StatefulWidget {
+  final Map<String, dynamic> student;
+
+  const DebuggingErrorPage({super.key, required this.student});
+
+  @override
+  State<DebuggingErrorPage> createState() => _DebuggingErrorPageState();
+}
+
+class _DebuggingErrorPageState extends State<DebuggingErrorPage> {
+  final TextEditingController _inputController = TextEditingController();
+  String _statusMessage = 'Masukkan teks atau data, lalu uji coba penanganan error.';
+  bool _isError = false;
+
+  @override
+  void dispose() {
+    _inputController.dispose();
+    super.dispose();
+  }
+
+  void _testProcess() {
+    setState(() {
+      try {
+        final text = _inputController.text.trim();
+        if (text.isEmpty) {
+          throw Exception('Input kosong! Data gagal diproses.');
+        }
+        if (text.toLowerCase() == 'error') {
+          throw Exception('Simulasi Server Error: Gagal terhubung ke database.');
+        }
+
+        _isError = false;
+        _statusMessage = 'Sukses! Data "$text" berhasil diproses dengan aman.';
+      } catch (e) {
+        _isError = true;
+        _statusMessage = e.toString();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final name = widget.student['name'] ?? '';
+    final nim = widget.student['nim'] ?? '';
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Tahap 16: Debugging & Error Handling', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$nim - $name',
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Simulasi Penanganan Kesalahan (Error Handling & Input):',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            TextField(
+              controller: _inputController,
+              decoration: const InputDecoration(
+                labelText: 'Ketik sesuatu (ketik "error" atau kosongkan untuk tes exception)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade300),
+              ),
+              child: Column(
+                children: [
+                  if (_isError)
+                    const Icon(Icons.error_outline, color: Colors.red, size: 40)
+                  else
+                    const Icon(Icons.check_circle_outline, color: Colors.green, size: 40),
+                  const SizedBox(height: 8),
+                  Text(
+                    _statusMessage,
+                    style: TextStyle(
+                      color: _isError ? Colors.red.shade700 : Colors.green.shade700,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Uji Proses & Tangkap Error (Try-Catch)'),
+                onPressed: _testProcess,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
 // 1. HOME PAGE
 // ============================================================
 class HomePage extends StatelessWidget {
@@ -376,84 +495,24 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'Course Explorer',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        title: const Text('Course Explorer', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.blue,
-        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              decoration: InputDecoration(
-                hintText: 'Search courses...',
-                prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                filled: true,
-                fillColor: Colors.grey.shade100,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Mahasiswa: ${student['name']} (${student['nim']})',
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
+            Text('Mahasiswa: ${student['name']} (${student['nim']})'),
+            const SizedBox(height: 10),
             Expanded(
               child: ListView.builder(
-                itemCount: courses.length > 5 ? 5 : courses.length,
+                itemCount: courses.length,
                 itemBuilder: (context, index) {
                   final course = courses[index] as Map<String, dynamic>;
-                  final status = course['status'] as String;
-                  final bool isActive = status == 'active';
-
                   return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    elevation: 1,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: BorderSide(color: Colors.grey.shade200),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                course['title'] as String,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF1E3A8A),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                course['code'] as String,
-                                style: const TextStyle(color: Colors.grey, fontSize: 13),
-                              ),
-                            ],
-                          ),
-                          Text(
-                            isActive ? 'Active' : 'Planned',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: ListTile(
+                      title: Text(course['title']),
+                      subtitle: Text(course['code']),
                     ),
                   );
                 },
@@ -478,101 +537,17 @@ class CoursesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Daftar Mata Kuliah', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: const Text('Daftar Mata Kuliah', style: TextStyle(color: Colors.white)), backgroundColor: Colors.blue),
       body: ListView.builder(
-        padding: const EdgeInsets.all(16.0),
         itemCount: courses.length,
-        itemBuilder: (context, index) {
-          final course = courses[index] as Map<String, dynamic>;
-          return Card(
-            child: ListTile(
-              title: Text(course['title'] as String),
-              subtitle: Text('${course['code']} • ${course['credits']} SKS'),
-            ),
-          );
-        },
+        itemBuilder: (context, index) => ListTile(title: Text(courses[index]['title'])),
       ),
     );
   }
 }
 
 // ============================================================
-// 3. FEEDBACK PAGE
-// ============================================================
-class FeedbackPage extends StatefulWidget {
-  final Map<String, dynamic> student;
-
-  const FeedbackPage({super.key, required this.student});
-
-  @override
-  State<FeedbackPage> createState() => _FeedbackPageState();
-}
-
-class _FeedbackPageState extends State<FeedbackPage> {
-  final _formKey = GlobalKey<FormState>();
-  late final TextEditingController _nameController;
-  late final TextEditingController _nimController;
-  final TextEditingController _commentController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: widget.student['name'] ?? '');
-    _nimController = TextEditingController(text: widget.student['nim'] ?? '');
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Form Feedback', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _nameController,
-                decoration: const InputDecoration(labelText: 'Nama'),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-              ),
-              TextFormField(
-                controller: _nimController,
-                decoration: const InputDecoration(labelText: 'NIM'),
-                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
-              ),
-              TextFormField(
-                controller: _commentController,
-                decoration: const InputDecoration(labelText: 'Komentar (Min 5 karakter)'),
-                validator: (v) => v == null || v.length < 5 ? 'Minimal 5 karakter' : null,
-              ),
-              const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Feedback terkirim!')),
-                    );
-                  }
-                },
-                child: const Text('Kirim'),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// 4. PROFILE PAGE
+// 3. PROFILE PAGE
 // ============================================================
 class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> student;
@@ -582,27 +557,9 @@ class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profil Mahasiswa', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: const Text('Profil Mahasiswa', style: TextStyle(color: Colors.white)), backgroundColor: Colors.blue),
       body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(24),
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const CircleAvatar(radius: 40, backgroundColor: Colors.blue, child: Icon(Icons.person, color: Colors.white, size: 40)),
-                const SizedBox(height: 16),
-                Text(student['name'] as String, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 8),
-                Text('NIM: ${student['nim']}'),
-              ],
-            ),
-          ),
-        ),
+        child: Text('${student['name']} - ${student['nim']}'),
       ),
     );
   }
