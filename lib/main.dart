@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const MainNavigationPage(),
+      home: const ResponsiveShell(),
     );
   }
 }
@@ -235,15 +235,17 @@ class _DashboardPageState extends State<DashboardPage> {
 
 
 
-
-class MainNavigationPage extends StatefulWidget {
-  const MainNavigationPage({super.key});
+// ============================================================
+// RESPONSIVE SHELL (Adaptive Navigation)
+// ============================================================
+class ResponsiveShell extends StatefulWidget {
+  const ResponsiveShell({super.key});
 
   @override
-  State<MainNavigationPage> createState() => _MainNavigationPageState();
+  State<ResponsiveShell> createState() => _ResponsiveShellState();
 }
 
-class _MainNavigationPageState extends State<MainNavigationPage> {
+class _ResponsiveShellState extends State<ResponsiveShell> {
   int currentIndex = 0;
   late Future<Map<String, dynamic>> studentFuture;
 
@@ -275,10 +277,10 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         final courses = data['courses'] as List<dynamic>;
 
         final List<Widget> pages = [
-          HomeTab(student: student, courses: courses),
-          CoursesTab(courses: courses, student: student),
-          FeedbackFormTab(student: student),
-          ProfileTab(student: student),
+          HomePage(student: student, courses: courses),
+          CoursesPage(courses: courses, student: student),
+          FeedbackPage(student: student),
+          ProfilePage(student: student),
         ];
 
         return LayoutBuilder(
@@ -361,64 +363,101 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
   }
 }
 
-// 1. Home Tab
-class HomeTab extends StatelessWidget {
+// ============================================================
+// 1. HOME PAGE
+// ============================================================
+class HomePage extends StatelessWidget {
   final Map<String, dynamic> student;
   final List<dynamic> courses;
 
-  const HomeTab({super.key, required this.student, required this.courses});
+  const HomePage({super.key, required this.student, required this.courses});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer - Home'),
-        elevation: 2,
+        title: const Text(
+          'Course Explorer',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Card(
-              elevation: 2,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  children: [
-                    const CircleAvatar(
-                      radius: 30,
-                      backgroundColor: Colors.deepPurple,
-                      child: Icon(Icons.person, color: Colors.white, size: 30),
-                    ),
-                    const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          student['name'] as String,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text('NIM: ${student['nim']}'),
-                      ],
-                    ),
-                  ],
+            TextField(
+              decoration: InputDecoration(
+                hintText: 'Search courses...',
+                prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Selamat Datang di Learning Dashboard!',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 16),
+            Text(
+              'Mahasiswa: ${student['name']} (${student['nim']})',
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 8),
-            Text(
-              'Total mata kuliah yang tersedia saat ini adalah ${courses.length} mata kuliah.',
-              style: TextStyle(color: Colors.grey.shade700, fontSize: 14),
+            Expanded(
+              child: ListView.builder(
+                itemCount: courses.length > 5 ? 5 : courses.length,
+                itemBuilder: (context, index) {
+                  final course = courses[index] as Map<String, dynamic>;
+                  final status = course['status'] as String;
+                  final bool isActive = status == 'active';
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    elevation: 1,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey.shade200),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                course['title'] as String,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF1E3A8A),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                course['code'] as String,
+                                style: const TextStyle(color: Colors.grey, fontSize: 13),
+                              ),
+                            ],
+                          ),
+                          Text(
+                            isActive ? 'Active' : 'Planned',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green.shade700,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
           ],
         ),
@@ -427,103 +466,56 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-// 2. Courses Tab
-class CoursesTab extends StatefulWidget {
+// ============================================================
+// 2. COURSES PAGE
+// ============================================================
+class CoursesPage extends StatelessWidget {
   final List<dynamic> courses;
   final Map<String, dynamic> student;
 
-  const CoursesTab({super.key, required this.courses, required this.student});
-
-  @override
-  State<CoursesTab> createState() => _CoursesTabState();
-}
-
-class _CoursesTabState extends State<CoursesTab> {
-  final Set<String> favoriteCourses = {};
+  const CoursesPage({super.key, required this.courses, required this.student});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Mata Kuliah'),
-        elevation: 2,
+        title: const Text('Daftar Mata Kuliah', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
-      body: Padding(
+      body: ListView.builder(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: widget.courses.length,
-          itemBuilder: (context, index) {
-            final course = widget.courses[index] as Map<String, dynamic>;
-            final courseTitle = course['title'] as String;
-            final status = course['status'] as String;
-            final bool isDone = status == 'done';
-            final bool isFavorite = favoriteCourses.contains(courseTitle);
-
-            return Card(
-              margin: const EdgeInsets.symmetric(vertical: 6),
-              elevation: 2,
-              child: ListTile(
-                leading: Icon(
-                  isDone
-                      ? Icons.check_circle
-                      : status == 'active'
-                          ? Icons.play_circle
-                          : Icons.schedule,
-                  color: isDone
-                      ? Colors.green
-                      : status == 'active'
-                          ? Colors.blue
-                          : Colors.orange,
-                ),
-                title: Text(courseTitle),
-                subtitle: Text('${course['code']} • ${course['credits']} SKS'),
-                trailing: IconButton(
-                  icon: Icon(
-                    isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: isFavorite ? Colors.red : Colors.grey,
-                  ),
-                  onPressed: () {
-                    setState(() {
-                      if (isFavorite) {
-                        favoriteCourses.remove(courseTitle);
-                      } else {
-                        favoriteCourses.add(courseTitle);
-                      }
-                    });
-                  },
-                ),
-              ),
-            );
-          },
-        ),
+        itemCount: courses.length,
+        itemBuilder: (context, index) {
+          final course = courses[index] as Map<String, dynamic>;
+          return Card(
+            child: ListTile(
+              title: Text(course['title'] as String),
+              subtitle: Text('${course['code']} • ${course['credits']} SKS'),
+            ),
+          );
+        },
       ),
     );
   }
 }
 
 // ============================================================
-// TAHAP 13 & 14: Feedback Form dengan Dialog, Loading, & Daftar Hasil Input
+// 3. FEEDBACK PAGE
 // ============================================================
-class FeedbackFormTab extends StatefulWidget {
+class FeedbackPage extends StatefulWidget {
   final Map<String, dynamic> student;
 
-  const FeedbackFormTab({super.key, required this.student});
+  const FeedbackPage({super.key, required this.student});
 
   @override
-  State<FeedbackFormTab> createState() => _FeedbackFormTabState();
+  State<FeedbackPage> createState() => _FeedbackPageState();
 }
 
-class _FeedbackFormTabState extends State<FeedbackFormTab> {
+class _FeedbackPageState extends State<FeedbackPage> {
   final _formKey = GlobalKey<FormState>();
-  
   late final TextEditingController _nameController;
   late final TextEditingController _nimController;
   final TextEditingController _commentController = TextEditingController();
-  
-  bool _isLoading = false;
-
-  // List untuk menyimpan riwayat/hasil input feedback
-  final List<Map<String, String>> submittedFeedbacks = [];
 
   @override
   void initState() {
@@ -533,274 +525,81 @@ class _FeedbackFormTabState extends State<FeedbackFormTab> {
   }
 
   @override
-  void dispose() {
-    _nameController.dispose();
-    _nimController.dispose();
-    _commentController.dispose();
-    super.dispose();
-  }
-
-  void _showConfirmationDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Konfirmasi Pengiriman'),
-        content: const Text('Apakah Anda yakin ingin mengirim umpan balik ini?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, foregroundColor: Colors.white),
-            onPressed: () {
-              Navigator.pop(ctx); 
-              _submitData();     
-            },
-            child: const Text('Ya, Kirim'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _submitData() async {
-    setState(() {
-      _isLoading = true;
-    });
-
-    await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    // Simpan data inputan ke dalam list riwayat feedback
-    setState(() {
-      _isLoading = false;
-      submittedFeedbacks.insert(0, {
-        'name': _nameController.text,
-        'nim': _nimController.text,
-        'comment': _commentController.text,
-      });
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Feedback berhasil dikirim dan disimpan!'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
-
-    _commentController.clear();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Form Feedback & Hasil Input'),
-        elevation: 2,
+        title: const Text('Form Feedback', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
-      body: SingleChildScrollView(
+      body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Form Card
-            Card(
-              elevation: 3,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Kirim Umpan Balik Aplikasi',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      TextFormField(
-                        controller: _nameController,
-                        decoration: const InputDecoration(
-                          labelText: 'Nama Lengkap',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.person),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'Nama wajib diisi';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _nimController,
-                        decoration: const InputDecoration(
-                          labelText: 'NIM',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.badge),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'NIM wajib diisi';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 16),
-
-                      TextFormField(
-                        controller: _commentController,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Komentar / Saran',
-                          hintText: 'Tuliskan komentar minimal 5 karakter...',
-                          border: OutlineInputBorder(),
-                          prefixIcon: Icon(Icons.comment),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.trim().length < 5) {
-                            return 'Komentar wajib diisi minimal 5 karakter';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      SizedBox(
-                        width: double.infinity,
-                        child: _isLoading
-                            ? const Center(
-                                child: CircularProgressIndicator(color: Colors.deepPurple),
-                              )
-                            : ElevatedButton.icon(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.deepPurple,
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                ),
-                                icon: const Icon(Icons.send),
-                                label: const Text('Kirim Feedback', style: TextStyle(fontSize: 16)),
-                                onPressed: () {
-                                  if (_formKey.currentState!.validate()) {
-                                    _showConfirmationDialog();
-                                  }
-                                },
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _nameController,
+                decoration: const InputDecoration(labelText: 'Nama'),
+                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
               ),
-            ),
-
-            const SizedBox(height: 24),
-            const Text(
-              'Riwayat Hasil Input Feedback:',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-
-            // Menampilkan daftar hasil input feedback secara dinamis
-            submittedFeedbacks.isEmpty
-                ? const Text(
-                    'Belum ada feedback yang dikirim.',
-                    style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-                  )
-                : ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: submittedFeedbacks.length,
-                    itemBuilder: (context, index) {
-                      final item = submittedFeedbacks[index];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(vertical: 4),
-                        elevation: 1,
-                        child: ListTile(
-                          leading: const CircleAvatar(
-                            backgroundColor: Colors.deepPurple,
-                            child: Icon(Icons.comment, color: Colors.white, size: 18),
-                          ),
-                          title: Text(item['name'] ?? ''),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('NIM: ${item['nim']}'),
-                              const SizedBox(height: 2),
-                              Text('Komentar: "${item['comment']}"'),
-                            ],
-                          ),
-                          isThreeLine: true,
-                        ),
-                      );
-                    },
-                  ),
-          ],
+              TextFormField(
+                controller: _nimController,
+                decoration: const InputDecoration(labelText: 'NIM'),
+                validator: (v) => v == null || v.isEmpty ? 'Wajib diisi' : null,
+              ),
+              TextFormField(
+                controller: _commentController,
+                decoration: const InputDecoration(labelText: 'Komentar (Min 5 karakter)'),
+                validator: (v) => v == null || v.length < 5 ? 'Minimal 5 karakter' : null,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Feedback terkirim!')),
+                    );
+                  }
+                },
+                child: const Text('Kirim'),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// 4. Profile Tab
-class ProfileTab extends StatelessWidget {
+// ============================================================
+// 4. PROFILE PAGE
+// ============================================================
+class ProfilePage extends StatelessWidget {
   final Map<String, dynamic> student;
 
-  const ProfileTab({super.key, required this.student});
+  const ProfilePage({super.key, required this.student});
 
   @override
   Widget build(BuildContext context) {
-    const double elevation = 4; // Menyesuaikan variabel bebas
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profil Mahasiswa'),
-        elevation: 2,
+        title: const Text('Profil Mahasiswa', style: TextStyle(color: Colors.white)),
+        backgroundColor: Colors.blue,
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Card(
-            elevation: elevation,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const CircleAvatar(
-                    radius: 45,
-                    backgroundColor: Colors.deepPurple,
-                    child: Icon(Icons.person, size: 50, color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    student['name'] as String,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'NIM: ${student['nim']}',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Semester: ${student['semester'] ?? 5}',
-                    style: const TextStyle(fontSize: 16, color: Colors.grey),
-                  ),
-                ],
-              ),
+        child: Card(
+          margin: const EdgeInsets.all(24),
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const CircleAvatar(radius: 40, backgroundColor: Colors.blue, child: Icon(Icons.person, color: Colors.white, size: 40)),
+                const SizedBox(height: 16),
+                Text(student['name'] as String, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('NIM: ${student['nim']}'),
+              ],
             ),
           ),
         ),
