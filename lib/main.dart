@@ -234,68 +234,17 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 // ============================================================
-// TAHAP 5: GridView Responsif
+// TAHAP 6: Scrollable Content dan Keyboard
 // ============================================================
-
-class CourseCard extends StatelessWidget {
-  final Map<String, dynamic> course;
-  const CourseCard({super.key, required this.course});
-
-  @override
-  Widget build(BuildContext context) {
-    final status = course['status'] as String;
-    final bool isDone = status == 'done';
-
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isDone
-                  ? Icons.check_circle
-                  : status == 'active'
-                      ? Icons.play_circle
-                      : Icons.schedule,
-              color: isDone
-                  ? Colors.green
-                  : status == 'active'
-                      ? Colors.blue
-                      : Colors.orange,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              course['title'] as String,
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 4),
-            Text('${course['code']} • ${course['credits']} SKS'),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 class ResponsiveTestPage extends StatelessWidget {
   const ResponsiveTestPage({super.key});
-
-  int columnsFor(double width) {
-    if (width < 600) return 1;
-    if (width < 840) return 2;
-    return 3;
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 5 - GridView Responsif'),
+        title: const Text('Tahap 6 - Scrollable & Keyboard'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
@@ -310,39 +259,68 @@ class ResponsiveTestPage extends StatelessWidget {
 
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
-          final courses = data['courses'] as List<dynamic>;
 
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
+          // Menggunakan SingleChildScrollView agar konten yang melebihi tinggi layar dapat di-scroll
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Nama dan NIM Mahasiswa
+                // Identitas Mahasiswa
                 Text(
                   '${student['nim']} - ${student['name']}',
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Uji Coba Form Input & SingleChildScrollView:',
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
                 const SizedBox(height: 12),
-                
-                // GridView Responsif menggunakan LayoutBuilder
-                Expanded(
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: columnsFor(constraints.maxWidth),
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 3,
-                        ),
-                        itemCount: courses.length,
-                        itemBuilder: (context, index) =>
-                            CourseCard(course: courses[index] as Map<String, dynamic>),
-                      );
-                    },
+
+                // Simulasi banyak elemen / form agar melebihi tinggi layar
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'Nama Lengkap',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(
+                    labelText: 'NIM',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  maxLines: 4,
+                  decoration: InputDecoration(
+                    labelText: 'Komentar / Feedback',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Tambahan Card untuk membuat konten lebih panjang ke bawah
+                ...List.generate(
+                  5,
+                  (index) => Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: ListTile(
+                      leading: const Icon(Icons.book, color: Colors.deepPurple),
+                      title: Text('Materi Pembelajaran ${index + 1}'),
+                      subtitle: const Text('Deskripsi singkat materi praktikum.'),
+                    ),
                   ),
                 ),
               ],
