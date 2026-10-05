@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         ),
         useMaterial3: true,
       ),
-      home: const ResponsiveTestPage(),
+      home: const HomePage(),
     );
   }
 }
@@ -233,18 +233,18 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// ============================================================
-// TAHAP 6: Scrollable Content dan Keyboard
+// TAHAP 7: Navigator.push() dan Navigator.pop() (Tampilan Dirapikan)
 // ============================================================
 
-class ResponsiveTestPage extends StatelessWidget {
-  const ResponsiveTestPage({super.key});
+class HomePage extends StatelessWidget {
+  const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 6 - Scrollable & Keyboard'),
+        title: const Text('Home Page - Navigasi'),
+        elevation: 2,
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
@@ -260,73 +260,150 @@ class ResponsiveTestPage extends StatelessWidget {
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
 
-          // Menggunakan SingleChildScrollView agar konten yang melebihi tinggi layar dapat di-scroll
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Identitas Mahasiswa
-                Text(
-                  '${student['nim']} - ${student['name']}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const CircleAvatar(
+                        radius: 40,
+                        backgroundColor: Colors.deepPurpleAccent,
+                        child: Icon(Icons.person, size: 40, color: Colors.white),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        student['name'] as String,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'NIM: ${student['nim']}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const DetailPage(),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.arrow_forward_rounded),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.deepPurple,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          label: const Text(
+                            'Buka Detail',
+                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Uji Coba Form Input & SingleChildScrollView:',
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                ),
-                const SizedBox(height: 12),
-
-                // Simulasi banyak elemen / form agar melebihi tinggi layar
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'Nama Lengkap',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  decoration: InputDecoration(
-                    labelText: 'NIM',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  maxLines: 4,
-                  decoration: InputDecoration(
-                    labelText: 'Komentar / Feedback',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Tambahan Card untuk membuat konten lebih panjang ke bawah
-                ...List.generate(
-                  5,
-                  (index) => Card(
-                    margin: const EdgeInsets.symmetric(vertical: 8),
-                    child: ListTile(
-                      leading: const Icon(Icons.book, color: Colors.deepPurple),
-                      title: Text('Materi Pembelajaran ${index + 1}'),
-                      subtitle: const Text('Deskripsi singkat materi praktikum.'),
-                    ),
-                  ),
-                ),
-              ],
+              ),
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class DetailPage extends StatelessWidget {
+  const DetailPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Detail Page'),
+        elevation: 2,
+      ),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Card(
+            elevation: 4,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.info_outline_rounded,
+                    size: 50,
+                    color: Colors.deepPurple,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Halaman Detail Navigasi',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Halaman ini berada di atas stack navigasi. Anda dapat kembali menggunakan tombol pop di bawah atau tombol back di AppBar.',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple.shade50,
+                        foregroundColor: Colors.deepPurple,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      label: const Text(
+                        'Kembali dengan Pop',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
