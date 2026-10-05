@@ -233,7 +233,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// TAHAP 11: Adaptive Navigation (NavigationBar vs NavigationRail)
+// TAHAP 12: User Interaction & Feedback (InkWell & LongPress)
+// ============================================================
 
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
@@ -273,16 +274,14 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         final student = data['student'] as Map<String, dynamic>;
         final courses = data['courses'] as List<dynamic>;
 
-        // Daftar halaman utama sesuai destinasi
         final List<Widget> pages = [
           HomeTab(student: student, courses: courses),
-          CoursesTab(courses: courses),
+          CoursesTab(courses: courses, student: student),
           ProfileTab(student: student),
         ];
 
         return LayoutBuilder(
           builder: (context, constraints) {
-            // Jika lebar layar kurang dari 840, gunakan NavigationBar (Compact / Medium)
             if (constraints.maxWidth < 840) {
               return Scaffold(
                 body: pages[currentIndex],
@@ -312,7 +311,6 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
               );
             }
 
-            // Jika lebar layar 840 atau lebih, gunakan NavigationRail (Expanded)
             return Scaffold(
               body: Row(
                 children: [
@@ -418,54 +416,138 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-// 2. Courses Tab
-class CoursesTab extends StatelessWidget {
+// 2. Courses Tab (Interaktif dengan InkWell, Favorite State, & Long Press)
+class CoursesTab extends StatefulWidget {
   final List<dynamic> courses;
+  final Map<String, dynamic> student;
 
-  const CoursesTab({super.key, required this.courses});
+  const CoursesTab({super.key, required this.courses, required this.student});
+
+  @override
+  State<CoursesTab> createState() => _CoursesTabState();
+}
+
+class _CoursesTabState extends State<CoursesTab> {
+  final Set<String> favoriteCourses = {};
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Mata Kuliah'),
+        title: const Text('Daftar Mata Kuliah (Interaktif)'),
         elevation: 2,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ListView.builder(
-          itemCount: courses.length,
+          itemCount: widget.courses.length,
           itemBuilder: (context, index) {
-            final course = courses[index] as Map<String, dynamic>;
+            final course = widget.courses[index] as Map<String, dynamic>;
+            final courseTitle = course['title'] as String;
             final status = course['status'] as String;
             final bool isDone = status == 'done';
+            final bool isFavorite = favoriteCourses.contains(courseTitle);
 
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 4),
-              child: ListTile(
-                leading: Icon(
-                  isDone
-                      ? Icons.check_circle
-                      : status == 'active'
-                          ? Icons.play_circle
-                          : Icons.schedule,
-                  color: isDone
-                      ? Colors.green
-                      : status == 'active'
-                          ? Colors.blue
-                          : Colors.orange,
-                ),
-                title: Text(course['title'] as String),
-                subtitle: Text('${course['code']} • ${course['credits']} SKS'),
-                trailing: Text(
-                  isDone ? 'Selesai' : status == 'active' ? 'Aktif' : 'Belum',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: isDone
-                        ? Colors.green
-                        : status == 'active'
-                            ? Colors.blue
-                            : Colors.orange,
+              margin: const EdgeInsets.symmetric(vertical: 6),
+              elevation: 2,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () {
+                  setState(() {
+                    if (isFavorite) {
+                      favoriteCourses.remove(courseTitle);
+                    } else {
+                      favoriteCourses.add(courseTitle);
+                    }
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isFavorite
+                            ? '"$courseTitle" dihapus dari favorit'
+                            : '"$courseTitle" ditambahkan ke favorit!',
+                      ),
+                      duration: const Duration(seconds: 1),
+                    ),
+                  );
+                },
+                onLongPress: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => AlertDialog(
+                      title: Text(courseTitle),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('Kode: ${course['code']}'),
+                          Text('SKS: ${course['credits']}'),
+                          Text('Status: $status'),
+                          const Divider(),
+                          Text('Mahasiswa: ${widget.student['name']}'),
+                          Text('NIM: ${widget.student['nim']}'),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          child: const Text('Tutup'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Row(
+                    children: [
+                      Icon(
+                        isDone
+                            ? Icons.check_circle
+                            : status == 'active'
+                                ? Icons.play_circle
+                                : Icons.schedule,
+                        color: isDone
+                            ? Colors.green
+                            : status == 'active'
+                                ? Colors.blue
+                                : Colors.orange,
+                        size: 32,
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              courseTitle,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text('${course['code']} • ${course['credits']} SKS'),
+                          ],
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            if (isFavorite) {
+                              favoriteCourses.remove(courseTitle);
+                            } else {
+                              favoriteCourses.add(courseTitle);
+                            }
+                          });
+                        },
+                      ),
+                    ],
                   ),
                 ),
               ),
