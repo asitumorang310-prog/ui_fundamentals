@@ -132,15 +132,12 @@ class _DashboardPageState extends State<DashboardPage> {
       body: FutureBuilder<Map<String, dynamic>>(
         future: studentFuture,
         builder: (context, snapshot) {
-          // Loading
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          // Error
           if (snapshot.hasError) {
             return Center(
               child: Text(
@@ -150,29 +147,20 @@ class _DashboardPageState extends State<DashboardPage> {
           }
 
           final data = snapshot.data!;
-
-          final student =
-              data['student'] as Map<String, dynamic>;
-
-          final courses =
-              data['courses'] as List<dynamic>;
+          final student = data['student'] as Map<String, dynamic>;
+          final courses = data['courses'] as List<dynamic>;
 
           final totalCredits = courses.fold<int>(
             0,
-            (sum, course) =>
-                sum + (course['credits'] as int),
+            (sum, course) => sum + (course['credits'] as int),
           );
 
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               children: [
-                // Profile / Identity
                 buildProfileCard(student),
-
                 const SizedBox(height: 8),
-
-                // Summary Row
                 Row(
                   children: [
                     buildSummaryCard(
@@ -188,28 +176,17 @@ class _DashboardPageState extends State<DashboardPage> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 8),
-
-                // List Courses
                 Expanded(
                   child: ListView.builder(
                     itemCount: courses.length,
                     itemBuilder: (context, index) {
-                      final course =
-                          courses[index]
-                              as Map<String, dynamic>;
-
-                      final status =
-                          course['status'] as String;
-
-                      final bool isDone =
-                          status == 'done';
+                      final course = courses[index] as Map<String, dynamic>;
+                      final status = course['status'] as String;
+                      final bool isDone = status == 'done';
 
                       return Card(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 4,
-                        ),
+                        margin: const EdgeInsets.symmetric(vertical: 4),
                         child: ListTile(
                           leading: Icon(
                             isDone
@@ -223,16 +200,13 @@ class _DashboardPageState extends State<DashboardPage> {
                                     ? Colors.blue
                                     : Colors.orange,
                           ),
-                          title: Text(
-                            course['title'] as String,
-                          ),
+                          title: Text(course['title'] as String),
                           subtitle: Text(
-                            '${course['code']} • '
-                            '${course['credits']} SKS',
+                            '${course['code']} • ${course['credits']} SKS',
                           ),
                           trailing: Text(
                             isDone
-                                ? 'Selesaii'
+                                ? 'Selesai'
                                 : status == 'active'
                                     ? 'Aktif'
                                     : 'Belum',
@@ -259,79 +233,122 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
+// ============================================================
+// TAHAP 3: LayoutCheerful & Breakpoint (Compact, Medium, Expanded)
+// ============================================================
 
-// ============================================================
-// TAHAP 2: MediaQuery - Membaca Karakteristik Layar
-// ============================================================
+class CompactLayout extends StatelessWidget {
+  final Map<String, dynamic> student;
+  const CompactLayout({super.key, required this.student});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.blue.shade50,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.phone_android, size: 50, color: Colors.blue),
+          const SizedBox(height: 12),
+          const Text('Kategori Layout: COMPACT (< 600 px)',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
+          const SizedBox(height: 8),
+          Text('${student['nim']} - ${student['name']}',
+              style: const TextStyle(fontSize: 16)),
+          const Text('(Visual: Tampilan vertikal satu kolom untuk Smartphone)'),
+        ],
+      ),
+    );
+  }
+}
+
+class MediumLayout extends StatelessWidget {
+  final Map<String, dynamic> student;
+  const MediumLayout({super.key, required this.student});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.orange.shade50,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.tablet_mac, size: 50, color: Colors.orange),
+          const SizedBox(height: 12),
+          const Text('Kategori Layout: MEDIUM (600 - 839 px)',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
+          const SizedBox(height: 8),
+          Text('${student['nim']} - ${student['name']}',
+              style: const TextStyle(fontSize: 16)),
+          const Text('(Visual: Tampilan semi-lebar untuk Tablet Portrait)'),
+        ],
+      ),
+    );
+  }
+}
+
+class ExpandedLayout extends StatelessWidget {
+  final Map<String, dynamic> student;
+  const ExpandedLayout({super.key, required this.student});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      color: Colors.green.shade50,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.desktop_windows, size: 50, color: Colors.green),
+          const SizedBox(height: 12),
+          const Text('Kategori Layout: EXPANDED (>= 840 px)',
+              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+          const SizedBox(height: 8),
+          Text('${student['nim']} - ${student['name']}',
+              style: const TextStyle(fontSize: 16)),
+          const Text('(Visual: Tampilan penuh / multi-kolom untuk Tablet Landscape atau Desktop)'),
+        ],
+      ),
+    );
+  }
+}
 
 class ResponsiveTestPage extends StatelessWidget {
   const ResponsiveTestPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Membaca ukuran layar dan orientasi menggunakan MediaQuery
-    final size = MediaQuery.of(context).size;
-    final orientation = MediaQuery.of(context).orientation;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 2 - MediaQuery'),
+        title: const Text('Tahap 3 - LayoutBuilder & Breakpoint'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
+            return const Center(child: CircularProgressIndicator());
           }
 
           if (snapshot.hasError) {
-            return Center(
-              child: Text(
-                'Gagal memuat data: ${snapshot.error}',
-              ),
-            );
+            return Center(child: Text('Gagal memuat data: ${snapshot.error}'));
           }
 
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
 
-          // Kondisi breakpoint sederhana sesuai instruksi tahap 2
-          final layoutCategory = size.width < 600 ? 'Compact' : 'Wide';
-
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Identitas Mahasiswa
-                Text(
-                  'NIM : ${student['nim']}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                Text(
-                  'Nama: ${student['name']}',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const Divider(height: 24),
-                
-                // Informasi MediaQuery
-                Text('Width: ${size.width.toStringAsFixed(0)} px'),
-                const SizedBox(height: 4),
-                Text('Height: ${size.height.toStringAsFixed(0)} px'),
-                const SizedBox(height: 4),
-                Text('Orientation: $orientation'),
-                const SizedBox(height: 4),
-                Text(
-                  'Layout Category: $layoutCategory',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: size.width < 600 ? Colors.blue : Colors.green,
-                  ),
-                ),
-              ],
-            ),
+          // Menggunakan LayoutBuilder untuk membaca constraints parent
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              if (constraints.maxWidth < 600) {
+                return CompactLayout(student: student);
+              } else if (constraints.maxWidth < 840) {
+                return MediumLayout(student: student);
+              } else {
+                return ExpandedLayout(student: student);
+              }
+            },
           );
         },
       ),
