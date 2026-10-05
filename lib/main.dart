@@ -234,95 +234,41 @@ class _DashboardPageState extends State<DashboardPage> {
 }
 
 // ============================================================
-// TAHAP 3: LayoutCheerful & Breakpoint (Compact, Medium, Expanded)
+// TAHAP 4: Expanded, Flexible, dan Wrap
 // ============================================================
-
-class CompactLayout extends StatelessWidget {
-  final Map<String, dynamic> student;
-  const CompactLayout({super.key, required this.student});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.blue.shade50,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.phone_android, size: 50, color: Colors.blue),
-          const SizedBox(height: 12),
-          const Text('Kategori Layout: COMPACT (< 600 px)',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.blue)),
-          const SizedBox(height: 8),
-          Text('${student['nim']} - ${student['name']}',
-              style: const TextStyle(fontSize: 16)),
-          const Text('(Visual: Tampilan vertikal satu kolom untuk Smartphone)'),
-        ],
-      ),
-    );
-  }
-}
-
-class MediumLayout extends StatelessWidget {
-  final Map<String, dynamic> student;
-  const MediumLayout({super.key, required this.student});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.orange.shade50,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.tablet_mac, size: 50, color: Colors.orange),
-          const SizedBox(height: 12),
-          const Text('Kategori Layout: MEDIUM (600 - 839 px)',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.orange)),
-          const SizedBox(height: 8),
-          Text('${student['nim']} - ${student['name']}',
-              style: const TextStyle(fontSize: 16)),
-          const Text('(Visual: Tampilan semi-lebar untuk Tablet Portrait)'),
-        ],
-      ),
-    );
-  }
-}
-
-class ExpandedLayout extends StatelessWidget {
-  final Map<String, dynamic> student;
-  const ExpandedLayout({super.key, required this.student});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      color: Colors.green.shade50,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.desktop_windows, size: 50, color: Colors.green),
-          const SizedBox(height: 12),
-          const Text('Kategori Layout: EXPANDED (>= 840 px)',
-              style: TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
-          const SizedBox(height: 8),
-          Text('${student['nim']} - ${student['name']}',
-              style: const TextStyle(fontSize: 16)),
-          const Text('(Visual: Tampilan penuh / multi-kolom untuk Tablet Landscape atau Desktop)'),
-        ],
-      ),
-    );
-  }
-}
 
 class ResponsiveTestPage extends StatelessWidget {
   const ResponsiveTestPage({super.key});
 
+  Widget buildBox(String text, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        text,
+        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final List<String> skills = [
+      'Flutter',
+      'Dart',
+      'UI/UX Design',
+      'Mobile Programming',
+      'Git & GitHub',
+      'State Management',
+    ];
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 3 - LayoutBuilder & Breakpoint'),
+        title: const Text('Tahap 4 - Expanded & Wrap'),
       ),
       body: FutureBuilder<Map<String, dynamic>>(
         future: loadStudentData(),
@@ -338,17 +284,60 @@ class ResponsiveTestPage extends StatelessWidget {
           final data = snapshot.data!;
           final student = data['student'] as Map<String, dynamic>;
 
-          // Menggunakan LayoutBuilder untuk membaca constraints parent
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              if (constraints.maxWidth < 600) {
-                return CompactLayout(student: student);
-              } else if (constraints.maxWidth < 840) {
-                return MediumLayout(student: student);
-              } else {
-                return ExpandedLayout(student: student);
-              }
-            },
+          return Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Identitas Mahasiswa
+                Text(
+                  '${student['nim']} - ${student['name']}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 1. Bagian Expanded dengan perbandingan flex 2:1
+                const Text(
+                  'Demo Expanded (Flex 2 : 1):',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      flex: 2,
+                      child: buildBox('Panel A (Flex 2)', Colors.deepPurple),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: buildBox('Panel B (Flex 1)', Colors.orange),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                // 2. Bagian Wrap dengan minimal 6 Chip skill
+                const Text(
+                  'Demo Wrap (Skill Chips):',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: skills
+                      .map((e) => Chip(
+                            label: Text(e),
+                            backgroundColor: Colors.deepPurple.shade50,
+                          ))
+                      .toList(),
+                ),
+              ],
+            ),
           );
         },
       ),
