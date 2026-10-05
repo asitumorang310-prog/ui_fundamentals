@@ -233,8 +233,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// TAHAP 10: NavigationBar / BottomNavigationBar
-// ============================================================
+// TAHAP 11: Adaptive Navigation (NavigationBar vs NavigationRail)
 
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
@@ -281,31 +280,72 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
           ProfileTab(student: student),
         ];
 
-        return Scaffold(
-          body: pages[currentIndex],
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: currentIndex,
-            onDestinationSelected: (index) {
-              setState(() => currentIndex = index);
-            },
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.home_outlined),
-                selectedIcon: Icon(Icons.home),
-                label: 'Home',
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Jika lebar layar kurang dari 840, gunakan NavigationBar (Compact / Medium)
+            if (constraints.maxWidth < 840) {
+              return Scaffold(
+                body: pages[currentIndex],
+                bottomNavigationBar: NavigationBar(
+                  selectedIndex: currentIndex,
+                  onDestinationSelected: (index) {
+                    setState(() => currentIndex = index);
+                  },
+                  destinations: const [
+                    NavigationDestination(
+                      icon: Icon(Icons.home_outlined),
+                      selectedIcon: Icon(Icons.home),
+                      label: 'Home',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.school_outlined),
+                      selectedIcon: Icon(Icons.school),
+                      label: 'Courses',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.person_outline),
+                      selectedIcon: Icon(Icons.person),
+                      label: 'Profile',
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            // Jika lebar layar 840 atau lebih, gunakan NavigationRail (Expanded)
+            return Scaffold(
+              body: Row(
+                children: [
+                  NavigationRail(
+                    selectedIndex: currentIndex,
+                    onDestinationSelected: (index) {
+                      setState(() => currentIndex = index);
+                    },
+                    labelType: NavigationRailLabelType.all,
+                    destinations: const [
+                      NavigationRailDestination(
+                        icon: Icon(Icons.home_outlined),
+                        selectedIcon: Icon(Icons.home),
+                        label: Text('Home'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.school_outlined),
+                        selectedIcon: Icon(Icons.school),
+                        label: Text('Courses'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.person_outline),
+                        selectedIcon: Icon(Icons.person),
+                        label: Text('Profile'),
+                      ),
+                    ],
+                  ),
+                  const VerticalDivider(width: 1),
+                  Expanded(child: pages[currentIndex]),
+                ],
               ),
-              NavigationDestination(
-                icon: Icon(Icons.school_outlined),
-                selectedIcon: Icon(Icons.school),
-                label: 'Courses',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.person_outline),
-                selectedIcon: Icon(Icons.person),
-                label: 'Profile',
-              ),
-            ],
-          ),
+            );
+          },
         );
       },
     );
