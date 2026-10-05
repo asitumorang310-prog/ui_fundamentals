@@ -233,7 +233,7 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// TAHAP 12: User Interaction & Feedback (InkWell & LongPress)
+// TAHAP 13: Form Input dan Validasi
 // ============================================================
 
 class MainNavigationPage extends StatefulWidget {
@@ -274,9 +274,11 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         final student = data['student'] as Map<String, dynamic>;
         final courses = data['courses'] as List<dynamic>;
 
+        // Kita tambah halaman Feedback Form sebagai tab ke-3 atau ke-4
         final List<Widget> pages = [
           HomeTab(student: student, courses: courses),
           CoursesTab(courses: courses, student: student),
+          FeedbackFormTab(student: student),
           ProfileTab(student: student),
         ];
 
@@ -300,6 +302,11 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                       icon: Icon(Icons.school_outlined),
                       selectedIcon: Icon(Icons.school),
                       label: 'Courses',
+                    ),
+                    NavigationDestination(
+                      icon: Icon(Icons.feedback_outlined),
+                      selectedIcon: Icon(Icons.feedback),
+                      label: 'Feedback',
                     ),
                     NavigationDestination(
                       icon: Icon(Icons.person_outline),
@@ -330,6 +337,11 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                         icon: Icon(Icons.school_outlined),
                         selectedIcon: Icon(Icons.school),
                         label: Text('Courses'),
+                      ),
+                      NavigationRailDestination(
+                        icon: Icon(Icons.feedback_outlined),
+                        selectedIcon: Icon(Icons.feedback),
+                        label: Text('Feedback'),
                       ),
                       NavigationRailDestination(
                         icon: Icon(Icons.person_outline),
@@ -416,7 +428,7 @@ class HomeTab extends StatelessWidget {
   }
 }
 
-// 2. Courses Tab (Interaktif dengan InkWell, Favorite State, & Long Press)
+// 2. Courses Tab
 class CoursesTab extends StatefulWidget {
   final List<dynamic> courses;
   final Map<String, dynamic> student;
@@ -434,7 +446,7 @@ class _CoursesTabState extends State<CoursesTab> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Daftar Mata Kuliah (Interaktif)'),
+        title: const Text('Daftar Mata Kuliah'),
         elevation: 2,
       ),
       body: Padding(
@@ -451,104 +463,35 @@ class _CoursesTabState extends State<CoursesTab> {
             return Card(
               margin: const EdgeInsets.symmetric(vertical: 6),
               elevation: 2,
-              child: InkWell(
-                borderRadius: BorderRadius.circular(12),
-                onTap: () {
-                  setState(() {
-                    if (isFavorite) {
-                      favoriteCourses.remove(courseTitle);
-                    } else {
-                      favoriteCourses.add(courseTitle);
-                    }
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        isFavorite
-                            ? '"$courseTitle" dihapus dari favorit'
-                            : '"$courseTitle" ditambahkan ke favorit!',
-                      ),
-                      duration: const Duration(seconds: 1),
-                    ),
-                  );
-                },
-                onLongPress: () {
-                  showDialog(
-                    context: context,
-                    builder: (ctx) => AlertDialog(
-                      title: Text(courseTitle),
-                      content: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Kode: ${course['code']}'),
-                          Text('SKS: ${course['credits']}'),
-                          Text('Status: $status'),
-                          const Divider(),
-                          Text('Mahasiswa: ${widget.student['name']}'),
-                          Text('NIM: ${widget.student['nim']}'),
-                        ],
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(ctx),
-                          child: const Text('Tutup'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Row(
-                    children: [
-                      Icon(
-                        isDone
-                            ? Icons.check_circle
-                            : status == 'active'
-                                ? Icons.play_circle
-                                : Icons.schedule,
-                        color: isDone
-                            ? Colors.green
-                            : status == 'active'
-                                ? Colors.blue
-                                : Colors.orange,
-                        size: 32,
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              courseTitle,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text('${course['code']} • ${course['credits']} SKS'),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.red : Colors.grey,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            if (isFavorite) {
-                              favoriteCourses.remove(courseTitle);
-                            } else {
-                              favoriteCourses.add(courseTitle);
-                            }
-                          });
-                        },
-                      ),
-                    ],
+              child: ListTile(
+                leading: Icon(
+                  isDone
+                      ? Icons.check_circle
+                      : status == 'active'
+                          ? Icons.play_circle
+                          : Icons.schedule,
+                  color: isDone
+                      ? Colors.green
+                      : status == 'active'
+                          ? Colors.blue
+                          : Colors.orange,
+                ),
+                title: Text(courseTitle),
+                subtitle: Text('${course['code']} • ${course['credits']} SKS'),
+                trailing: IconButton(
+                  icon: Icon(
+                    isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: isFavorite ? Colors.red : Colors.grey,
                   ),
+                  onPressed: () {
+                    setState(() {
+                      if (isFavorite) {
+                        favoriteCourses.remove(courseTitle);
+                      } else {
+                        favoriteCourses.add(courseTitle);
+                      }
+                    });
+                  },
                 ),
               ),
             );
@@ -559,7 +502,155 @@ class _CoursesTabState extends State<CoursesTab> {
   }
 }
 
-// 3. Profile Tab
+// TAHAP 13 TAB: Feedback Form dengan GlobalKey & Validator
+
+class FeedbackFormTab extends StatefulWidget {
+  final Map<String, dynamic> student;
+
+  const FeedbackFormTab({super.key, required this.student});
+
+  @override
+  State<FeedbackFormTab> createState() => _FeedbackFormTabState();
+}
+
+class _FeedbackFormTabState extends State<FeedbackFormTab> {
+  final _formKey = GlobalKey<FormState>();
+  
+  late final TextEditingController _nameController;
+  late final TextEditingController _nimController;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    // Mengisi nilai default dari data student
+    _nameController = TextEditingController(text: widget.student['name'] ?? '');
+    _nimController = TextEditingController(text: widget.student['nim'] ?? '');
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _nimController.dispose();
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Form Feedback & Umpan Balik'),
+        elevation: 2,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Card(
+          elevation: 3,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Kirim Umpan Balik Aplikasi',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Field Nama (Default terisi)
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Nama Lengkap',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Nama wajib diisi';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Field NIM (Default terisi)
+                  TextFormField(
+                    controller: _nimController,
+                    decoration: const InputDecoration(
+                      labelText: 'NIM',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.badge),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return 'NIM wajib diisi';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Field Komentar (Validasi minimal 5 karakter)
+                  TextFormField(
+                    controller: _commentController,
+                    maxLines: 3,
+                    decoration: const InputDecoration(
+                      labelText: 'Komentar / Saran',
+                      hintText: 'Tuliskan komentar minimal 5 karakter...',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.comment),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.trim().length < 5) {
+                        return 'Komentar wajib diisi minimal 5 karakter';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Tombol Submit
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.send),
+                      label: const Text('Kirim Feedback', style: TextStyle(fontSize: 16)),
+                      onPressed: () {
+                        // Validasi form sebelum memproses data
+                        if (_formKey.currentState!.validate()) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Feedback berhasil dikirim. Terima kasih!'),
+                              backgroundColor: Colors.green,
+                              duration: Duration(seconds: 2),
+                            ),
+                          );
+                          _commentController.clear();
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// 4. Profile Tab
 class ProfileTab extends StatelessWidget {
   final Map<String, dynamic> student;
 
