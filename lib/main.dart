@@ -232,8 +232,8 @@ class _DashboardPageState extends State<DashboardPage> {
     );
   }
 }
-
-// TAHAP 8: Passing Data dari List ke Detail Page
+// TAHAP 9: Returning Data & Update State Favorite
+// ============================================================
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -244,6 +244,9 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   late Future<Map<String, dynamic>> studentFuture;
+  
+  // Set untuk menyimpan judul course yang difavoritkan
+  final Set<String> favoriteCourses = {};
 
   @override
   void initState() {
@@ -316,14 +319,18 @@ class _HomePageState extends State<HomePage> {
                 ),
                 const SizedBox(height: 8),
 
-                // ListView Course yang dapat ditekan untuk mengirim data
+                // ListView Course
                 Expanded(
                   child: ListView.builder(
                     itemCount: courses.length,
                     itemBuilder: (context, index) {
                       final course = courses[index] as Map<String, dynamic>;
+                      final courseTitle = course['title'] as String;
                       final status = course['status'] as String;
                       final bool isDone = status == 'done';
+                      
+                      // Cek apakah course ini sudah ada di daftar favorite
+                      final bool isFavorite = favoriteCourses.contains(courseTitle);
 
                       return Card(
                         margin: const EdgeInsets.symmetric(vertical: 4),
@@ -340,12 +347,16 @@ class _HomePageState extends State<HomePage> {
                                     ? Colors.blue
                                     : Colors.orange,
                           ),
-                          title: Text(course['title'] as String),
+                          title: Text(courseTitle),
                           subtitle: Text('${course['code']} • ${course['credits']} SKS'),
-                          trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                          onTap: () {
-                            // Mengirim data Map course ke CourseDetailPage melalui constructor
-                            Navigator.push(
+                          // Trailing berubah menjadi ikon love merah jika sudah difavoritkan
+                          trailing: Icon(
+                            isFavorite ? Icons.favorite : Icons.arrow_forward_ios,
+                            color: isFavorite ? Colors.red : Colors.grey,
+                            size: isFavorite ? 24 : 16,
+                          ),
+                          onTap: () async {
+                            final result = await Navigator.push<bool>(
                               context,
                               MaterialPageRoute(
                                 builder: (_) => CourseDetailPage(
@@ -354,6 +365,20 @@ class _HomePageState extends State<HomePage> {
                                 ),
                               ),
                             );
+
+                            // Jika mendapat nilai true dari pop, ubah state lokal agar UI memperbarui ikon
+                            if (result == true && context.mounted) {
+                              setState(() {
+                                favoriteCourses.add(courseTitle);
+                              });
+
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Mata kuliah "$courseTitle" ditandai sebagai Favorit!'),
+                                  duration: const Duration(seconds: 2),
+                                ),
+                              );
+                            }
                           },
                         ),
                       );
@@ -429,6 +454,24 @@ class CourseDetailPage extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text('Nama: ${student['name']}'),
                 Text('NIM: ${student['nim']}'),
+                const SizedBox(height: 24),
+
+                // Tombol Pilih / Favorite untuk mengirim data kembali ke screen sebelumnya
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    icon: const Icon(Icons.favorite, color: Colors.white),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    label: const Text('Pilih / Jadikan Favorit'),
+                  ),
+                ),
               ],
             ),
           ),
