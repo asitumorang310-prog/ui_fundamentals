@@ -233,8 +233,8 @@ class _DashboardPageState extends State<DashboardPage> {
   }
 }
 
-// TAHAP 13: Form Input dan Validasi
-// ============================================================
+
+
 
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
@@ -274,7 +274,6 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
         final student = data['student'] as Map<String, dynamic>;
         final courses = data['courses'] as List<dynamic>;
 
-        // Kita tambah halaman Feedback Form sebagai tab ke-3 atau ke-4
         final List<Widget> pages = [
           HomeTab(student: student, courses: courses),
           CoursesTab(courses: courses, student: student),
@@ -502,8 +501,9 @@ class _CoursesTabState extends State<CoursesTab> {
   }
 }
 
-// TAHAP 13 TAB: Feedback Form dengan GlobalKey & Validator
-
+// ============================================================
+// TAHAP 13 & 14: Feedback Form dengan Dialog, Loading, & Daftar Hasil Input
+// ============================================================
 class FeedbackFormTab extends StatefulWidget {
   final Map<String, dynamic> student;
 
@@ -519,11 +519,15 @@ class _FeedbackFormTabState extends State<FeedbackFormTab> {
   late final TextEditingController _nameController;
   late final TextEditingController _nimController;
   final TextEditingController _commentController = TextEditingController();
+  
+  bool _isLoading = false;
+
+  // List untuk menyimpan riwayat/hasil input feedback
+  final List<Map<String, String>> submittedFeedbacks = [];
 
   @override
   void initState() {
     super.initState();
-    // Mengisi nilai default dari data student
     _nameController = TextEditingController(text: widget.student['name'] ?? '');
     _nimController = TextEditingController(text: widget.student['nim'] ?? '');
   }
@@ -536,114 +540,208 @@ class _FeedbackFormTabState extends State<FeedbackFormTab> {
     super.dispose();
   }
 
+  void _showConfirmationDialog() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Konfirmasi Pengiriman'),
+        content: const Text('Apakah Anda yakin ingin mengirim umpan balik ini?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple, foregroundColor: Colors.white),
+            onPressed: () {
+              Navigator.pop(ctx); 
+              _submitData();     
+            },
+            child: const Text('Ya, Kirim'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _submitData() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
+    // Simpan data inputan ke dalam list riwayat feedback
+    setState(() {
+      _isLoading = false;
+      submittedFeedbacks.insert(0, {
+        'name': _nameController.text,
+        'nim': _nimController.text,
+        'comment': _commentController.text,
+      });
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Feedback berhasil dikirim dan disimpan!'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    _commentController.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Form Feedback & Umpan Balik'),
+        title: const Text('Form Feedback & Hasil Input'),
         elevation: 2,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
-        child: Card(
-          elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-          child: Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Kirim Umpan Balik Aplikasi',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
-                  ),
-                  const SizedBox(height: 16),
-                  
-                  // Field Nama (Default terisi)
-                  TextFormField(
-                    controller: _nameController,
-                    decoration: const InputDecoration(
-                      labelText: 'Nama Lengkap',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.person),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Nama wajib diisi';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Field NIM (Default terisi)
-                  TextFormField(
-                    controller: _nimController,
-                    decoration: const InputDecoration(
-                      labelText: 'NIM',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.badge),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'NIM wajib diisi';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Field Komentar (Validasi minimal 5 karakter)
-                  TextFormField(
-                    controller: _commentController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(
-                      labelText: 'Komentar / Saran',
-                      hintText: 'Tuliskan komentar minimal 5 karakter...',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.comment),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().length < 5) {
-                        return 'Komentar wajib diisi minimal 5 karakter';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Tombol Submit
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Form Card
+            Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Kirim Umpan Balik Aplikasi',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.deepPurple),
                       ),
-                      icon: const Icon(Icons.send),
-                      label: const Text('Kirim Feedback', style: TextStyle(fontSize: 16)),
-                      onPressed: () {
-                        // Validasi form sebelum memproses data
-                        if (_formKey.currentState!.validate()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Feedback berhasil dikirim. Terima kasih!'),
-                              backgroundColor: Colors.green,
-                              duration: Duration(seconds: 2),
-                            ),
-                          );
-                          _commentController.clear();
-                        }
-                      },
-                    ),
+                      const SizedBox(height: 16),
+                      
+                      TextFormField(
+                        controller: _nameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Nama Lengkap',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.person),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Nama wajib diisi';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _nimController,
+                        decoration: const InputDecoration(
+                          labelText: 'NIM',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.badge),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'NIM wajib diisi';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+
+                      TextFormField(
+                        controller: _commentController,
+                        maxLines: 3,
+                        decoration: const InputDecoration(
+                          labelText: 'Komentar / Saran',
+                          hintText: 'Tuliskan komentar minimal 5 karakter...',
+                          border: OutlineInputBorder(),
+                          prefixIcon: Icon(Icons.comment),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().length < 5) {
+                            return 'Komentar wajib diisi minimal 5 karakter';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: _isLoading
+                            ? const Center(
+                                child: CircularProgressIndicator(color: Colors.deepPurple),
+                              )
+                            : ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurple,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                                icon: const Icon(Icons.send),
+                                label: const Text('Kirim Feedback', style: TextStyle(fontSize: 16)),
+                                onPressed: () {
+                                  if (_formKey.currentState!.validate()) {
+                                    _showConfirmationDialog();
+                                  }
+                                },
+                              ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
+
+            const SizedBox(height: 24),
+            const Text(
+              'Riwayat Hasil Input Feedback:',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+
+            // Menampilkan daftar hasil input feedback secara dinamis
+            submittedFeedbacks.isEmpty
+                ? const Text(
+                    'Belum ada feedback yang dikirim.',
+                    style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+                  )
+                : ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: submittedFeedbacks.length,
+                    itemBuilder: (context, index) {
+                      final item = submittedFeedbacks[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        elevation: 1,
+                        child: ListTile(
+                          leading: const CircleAvatar(
+                            backgroundColor: Colors.deepPurple,
+                            child: Icon(Icons.comment, color: Colors.white, size: 18),
+                          ),
+                          title: Text(item['name'] ?? ''),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('NIM: ${item['nim']}'),
+                              const SizedBox(height: 2),
+                              Text('Komentar: "${item['comment']}"'),
+                            ],
+                          ),
+                          isThreeLine: true,
+                        ),
+                      );
+                    },
+                  ),
+          ],
         ),
       ),
     );
@@ -658,6 +756,7 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const double elevation = 4; // Menyesuaikan variabel bebas
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profil Mahasiswa'),
@@ -667,7 +766,7 @@ class ProfileTab extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(24.0),
           child: Card(
-            elevation: 4,
+            elevation: elevation,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
             ),
