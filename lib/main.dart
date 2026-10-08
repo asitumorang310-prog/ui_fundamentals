@@ -394,7 +394,7 @@ class _DebuggingErrorPageState extends State<DebuggingErrorPage> {
         }
 
         _isError = false;
-        _statusMessage = 'Sukses! Data "$text" berhasil diproses dengan aman.';
+        _statusMessage = 'Sukses! Data "$text" berhasil diproses dengan aman';
       } catch (e) {
         _isError = true;
         _statusMessage = e.toString();
