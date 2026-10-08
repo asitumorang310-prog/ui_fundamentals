@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+// Identitas Wajib
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
@@ -14,42 +15,34 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer - Tahap 3',
-      home: CourseExplorerParent(),
+      title: 'Course Explorer - Tahap 4',
+      home: ValueNotifierScreen(),
     );
   }
 }
 
-// Parent Widget sebagai Single Source of Truth
-class CourseExplorerParent extends StatefulWidget {
-  const CourseExplorerParent({super.key});
+class ValueNotifierScreen extends StatefulWidget {
+  const ValueNotifierScreen({super.key});
 
   @override
-  State<CourseExplorerParent> createState() => _CourseExplorerParentState();
+  State<ValueNotifierScreen> createState() => _ValueNotifierScreenState();
 }
 
-class _CourseExplorerParentState extends State<CourseExplorerParent> {
-  // Single Source of Truth untuk data mata kuliah dan status favoritnya
-  final List<Map<String, dynamic>> _courses = [
-    {'code': 'IF101', 'title': 'Git & GitHub', 'isFavorite': false},
-    {'code': 'IF102', 'title': 'Dart Fundamentals', 'isFavorite': true},
-    {'code': 'IF103', 'title': 'State Management', 'isFavorite': false},
-  ];
+class _ValueNotifierScreenState extends State<ValueNotifierScreen> {
+  // 1. Membuat ValueNotifier untuk nilai integer sederhana (jumlah favorite)
+  final ValueNotifier<int> _favoriteCounter = ValueNotifier<int>(0);
 
-  // Aksi perubahan state diletakkan di parent
-  void _toggleFavorite(int index) {
-    setState(() {
-      _courses[index]['isFavorite'] = !_courses[index]['isFavorite'];
-    });
+  @override
+  void dispose() {
+    _favoriteCounter.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    int totalFavorites = _courses.where((c) => c['isFavorite'] == true).length;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 3: Lifting State Up'),
+        title: const Text('Tahap 4: ValueNotifier & Builder'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -60,83 +53,55 @@ class _CourseExplorerParentState extends State<CourseExplorerParent> {
               '$studentId - $studentName',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-            const SizedBox(height: 12),
-            // Widget Anak 1: Menampilkan ringkasan yang selalu sinkron dengan parent
-            Card(
-              color: Colors.green.shade50,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text('Total Favorit Aktif:'),
-                    Text(
-                      '$totalFavorites dari ${_courses.length} Kursus',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ),
-            ),
             const SizedBox(height: 16),
-            const Text(
-              'Daftar Kursus (Lifting State Up):',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            
+            // 2. Menampilkan nilai dengan ValueListenableBuilder tanpa setState parent
+            ValueListenableBuilder<int>(
+              valueListenable: _favoriteCounter,
+              builder: (context, value, child) {
+                return Card(
+                  color: Colors.amber.shade50,
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Jumlah Kursus Favorit (ValueNotifier):'),
+                        Text(
+                          '$value',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-            const SizedBox(height: 8),
-            // Widget Anak 2: List course
-            Expanded(
-              child: ListView.builder(
-                itemCount: _courses.length,
-                itemBuilder: (context, index) {
-                  final course = _courses[index];
-                  return CourseCard(
-                    title: course['title'],
-                    code: course['code'],
-                    isFavorite: course['isFavorite'],
-                    onFavoriteChanged: () {
-                      // Mengirim aksi kembali ke parent melalui callback
-                      _toggleFavorite(index);
-                    },
-                  );
-                },
-              ),
+            const SizedBox(height: 20),
+            
+            // 3. Button untuk mengubah value secara langsung
+            ElevatedButton.icon(
+              onPressed: () {
+                _favoriteCounter.value += 1; // Mengubah nilai notifier
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Tambah Favorit'),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade100),
+              onPressed: () {
+                if (_favoriteCounter.value > 0) {
+                  _favoriteCounter.value -= 1;
+                }
+              },
+              icon: const Icon(Icons.remove),
+              label: const Text('Kurangi Favorit'),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-// Widget Anak (Child) yang bersifat stateless, menerima data & callback
-class CourseCard extends StatelessWidget {
-  final String title;
-  final String code;
-  final bool isFavorite;
-  final VoidCallback onFavoriteChanged;
-
-  const CourseCard({
-    super.key,
-    required this.title,
-    required this.code,
-    required this.isFavorite,
-    required this.onFavoriteChanged,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 6.0),
-      child: ListTile(
-        title: Text(title),
-        subtitle: Text('Kode: $code'),
-        trailing: IconButton(
-          icon: Icon(
-            isFavorite ? Icons.favorite : Icons.favorite_border,
-            color: Colors.red,
-          ),
-          onPressed: onFavoriteChanged, // Memanggil callback ke parent
         ),
       ),
     );
