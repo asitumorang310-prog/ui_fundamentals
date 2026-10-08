@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
@@ -13,39 +14,42 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer - Tahap 2',
-      home: ParentScreen(),
+      title: 'Course Explorer - Tahap 3',
+      home: CourseExplorerParent(),
     );
   }
 }
 
-// Parent Widget yang memiliki state utama (State Ownership)
-class ParentScreen extends StatefulWidget {
-  const ParentScreen({super.key});
+// Parent Widget sebagai Single Source of Truth
+class CourseExplorerParent extends StatefulWidget {
+  const CourseExplorerParent({super.key});
 
   @override
-  State<ParentScreen> createState() => _ParentScreenState();
+  State<CourseExplorerParent> createState() => _CourseExplorerParentState();
 }
 
-class _ParentScreenState extends State<ParentScreen> {
-  // Shared state sederhana di Parent
-  final Set<String> _favorites = {};
+class _CourseExplorerParentState extends State<CourseExplorerParent> {
+  // Single Source of Truth untuk data mata kuliah dan status favoritnya
+  final List<Map<String, dynamic>> _courses = [
+    {'code': 'IF101', 'title': 'Git & GitHub', 'isFavorite': false},
+    {'code': 'IF102', 'title': 'Dart Fundamentals', 'isFavorite': true},
+    {'code': 'IF103', 'title': 'State Management', 'isFavorite': false},
+  ];
 
-  void _toggleFavorite(String courseCode) {
+  // Aksi perubahan state diletakkan di parent
+  void _toggleFavorite(int index) {
     setState(() {
-      if (_favorites.contains(courseCode)) {
-        _favorites.remove(courseCode);
-      } else {
-        _favorites.add(courseCode);
-      }
+      _courses[index]['isFavorite'] = !_courses[index]['isFavorite'];
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    int totalFavorites = _courses.where((c) => c['isFavorite'] == true).length;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 2: Masalah setState & Prop Drilling'),
+        title: const Text('Tahap 3: Lifting State Up'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -57,19 +61,45 @@ class _ParentScreenState extends State<ParentScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 12),
-            // Child 1: Menampilkan ringkasan jumlah favorit (harus dilempar lewat constructor)
-            CourseSummary(favoriteCount: _favorites.length),
+            // Widget Anak 1: Menampilkan ringkasan yang selalu sinkron dengan parent
+            Card(
+              color: Colors.green.shade50,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Total Favorit Aktif:'),
+                    Text(
+                      '$totalFavorites dari ${_courses.length} Kursus',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: 16),
             const Text(
-              'Daftar Mata Kuliah:',
+              'Daftar Kursus (Lifting State Up):',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const SizedBox(height: 8),
-            // Child 2: List course yang menerima data dan callback
+            // Widget Anak 2: List course
             Expanded(
-              child: CourseList(
-                favorites: _favorites,
-                onToggleFavorite: _toggleFavorite,
+              child: ListView.builder(
+                itemCount: _courses.length,
+                itemBuilder: (context, index) {
+                  final course = _courses[index];
+                  return CourseCard(
+                    title: course['title'],
+                    code: course['code'],
+                    isFavorite: course['isFavorite'],
+                    onFavoriteChanged: () {
+                      // Mengirim aksi kembali ke parent melalui callback
+                      _toggleFavorite(index);
+                    },
+                  );
+                },
               ),
             ),
           ],
@@ -79,73 +109,36 @@ class _ParentScreenState extends State<ParentScreen> {
   }
 }
 
-// Child 1: CourseSummary
-class CourseSummary extends StatelessWidget {
-  final int favoriteCount;
-  const CourseSummary({super.key, required this.favoriteCount});
+// Widget Anak (Child) yang bersifat stateless, menerima data & callback
+class CourseCard extends StatelessWidget {
+  final String title;
+  final String code;
+  final bool isFavorite;
+  final VoidCallback onFavoriteChanged;
 
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.blue.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text('Total Kursus Favorit:'),
-            Text(
-              '$favoriteCount',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-// Child 2: CourseList
-class CourseList extends StatelessWidget {
-  final Set<String> favorites;
-  final Function(String) onToggleFavorite;
-
-  const CourseList({
+  const CourseCard({
     super.key,
-    required this.favorites,
-    required this.onToggleFavorite,
+    required this.title,
+    required this.code,
+    required this.isFavorite,
+    required this.onFavoriteChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    final List<Map<String, String>> courses = [
-      {'code': 'IF101', 'title': 'Git & GitHub'},
-      {'code': 'IF102', 'title': 'Dart Fundamentals'},
-      {'code': 'IF103', 'title': 'State Management'},
-    ];
-
-    return ListView.builder(
-      itemCount: courses.length,
-      itemBuilder: (context, index) {
-        final course = courses[index];
-        final code = course['code']!;
-        final title = course['title']!;
-        final isFav = favorites.contains(code);
-
-        return Card(
-          child: ListTile(
-            title: Text(title),
-            subtitle: Text('Kode: $code'),
-            trailing: IconButton(
-              icon: Icon(
-                isFav ? Icons.favorite : Icons.favorite_border,
-                color: Colors.red,
-              ),
-              onPressed: () => onToggleFavorite(code), // Prop drilling callback naik ke parent
-            ),
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6.0),
+      child: ListTile(
+        title: Text(title),
+        subtitle: Text('Kode: $code'),
+        trailing: IconButton(
+          icon: Icon(
+            isFavorite ? Icons.favorite : Icons.favorite_border,
+            color: Colors.red,
           ),
-        );
-      },
+          onPressed: onFavoriteChanged, // Memanggil callback ke parent
+        ),
+      ),
     );
   }
 }
