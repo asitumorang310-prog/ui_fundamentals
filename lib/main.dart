@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'providers/course_provider.dart'; 
 
-// Identitas Wajib
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
@@ -15,26 +15,25 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer - Tahap 4',
-      home: ValueNotifierScreen(),
+      title: 'Course Explorer - Uji Tahap 5',
+      home: TestChangeNotifierScreen(),
     );
   }
 }
 
-class ValueNotifierScreen extends StatefulWidget {
-  const ValueNotifierScreen({super.key});
+class TestChangeNotifierScreen extends StatefulWidget {
+  const TestChangeNotifierScreen({super.key});
 
   @override
-  State<ValueNotifierScreen> createState() => _ValueNotifierScreenState();
+  State<TestChangeNotifierScreen> createState() => _TestChangeNotifierScreenState();
 }
 
-class _ValueNotifierScreenState extends State<ValueNotifierScreen> {
-  // 1. Membuat ValueNotifier untuk nilai integer sederhana (jumlah favorite)
-  final ValueNotifier<int> _favoriteCounter = ValueNotifier<int>(0);
+class _TestChangeNotifierScreenState extends State<TestChangeNotifierScreen> {
+  final CourseState _courseState = CourseState();
 
   @override
   void dispose() {
-    _favoriteCounter.dispose();
+    _courseState.dispose();
     super.dispose();
   }
 
@@ -42,7 +41,7 @@ class _ValueNotifierScreenState extends State<ValueNotifierScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tahap 4: ValueNotifier & Builder'),
+        title: const Text('Tahap 5: ChangeNotifier & notifyListeners'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -54,26 +53,22 @@ class _ValueNotifierScreenState extends State<ValueNotifierScreen> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             const SizedBox(height: 16),
-            
-            // 2. Menampilkan nilai dengan ValueListenableBuilder tanpa setState parent
-            ValueListenableBuilder<int>(
-              valueListenable: _favoriteCounter,
-              builder: (context, value, child) {
+            AnimatedBuilder(
+              animation: _courseState,
+              builder: (context, child) {
                 return Card(
-                  color: Colors.amber.shade50,
+                  color: Colors.blue.shade50,
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Jumlah Kursus Favorit (ValueNotifier):'),
                         Text(
-                          '$value',
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
+                          'Total Favorit: ${_courseState.favorites.length}',
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                         ),
+                        const SizedBox(height: 8),
+                        Text('Daftar ID Favorit: ${_courseState.favorites.toList()}'),
                       ],
                     ),
                   ),
@@ -81,25 +76,20 @@ class _ValueNotifierScreenState extends State<ValueNotifierScreen> {
               },
             ),
             const SizedBox(height: 20),
-            
-            // 3. Button untuk mengubah value secara langsung
-            ElevatedButton.icon(
+            const Text('Uji Tombol Toggle Favorite:'),
+            const SizedBox(height: 10),
+            ElevatedButton(
               onPressed: () {
-                _favoriteCounter.value += 1; // Mengubah nilai notifier
+                _courseState.toggleFavorite('IF101');
               },
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah Favorit'),
+              child: const Text('Toggle Course: IF101 (Git & GitHub)'),
             ),
             const SizedBox(height: 10),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red.shade100),
+            ElevatedButton(
               onPressed: () {
-                if (_favoriteCounter.value > 0) {
-                  _favoriteCounter.value -= 1;
-                }
+                _courseState.toggleFavorite('IF102');
               },
-              icon: const Icon(Icons.remove),
-              label: const Text('Kurangi Favorit'),
+              child: const Text('Toggle Course: IF102 (Dart Fundamentals)'),
             ),
           ],
         ),
