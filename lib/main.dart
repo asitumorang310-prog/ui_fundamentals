@@ -1,16 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/course_provider.dart';
-import 'models/course.dart';
 import 'services/course_service.dart';
 import 'repositories/course_repository.dart';
+import 'providers/course_provider.dart';
+import 'models/course.dart';
+
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => CourseState(),
+    MultiProvider(
+      providers: [
+        Provider<CourseService>(create: (_) => CourseService()),
+        ProxyProvider<CourseService, CourseRepository>(
+          update: (_, service, __) => CourseRepository(service),
+        ),
+        ChangeNotifierProxyProvider<CourseRepository, CourseState>(
+          create: (context) => CourseState(context.read<CourseRepository>()),
+          update: (_, repository, previousState) =>
+              previousState ?? CourseState(repository),
+        ),
+      ],
       child: const MyApp(),
     ),
   );
@@ -23,45 +34,41 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer - Tahap 10',
+      title: 'Course Explorer - Tahap 11',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.indigo,
+        colorSchemeSeed: Colors.deepOrange,
       ),
-      home: const RepositoryTestScreen(),
+      home: const AsyncStateScreen(),
     );
   }
 }
 
-class RepositoryTestScreen extends StatefulWidget {
-  const RepositoryTestScreen({super.key});
+class AsyncStateScreen extends StatefulWidget {
+  const AsyncStateScreen({super.key});
 
   @override
-  State<RepositoryTestScreen> createState() => _RepositoryTestScreenState();
+  State<AsyncStateScreen> createState() => _AsyncStateScreenState();
 }
 
-class _RepositoryTestScreenState extends State<RepositoryTestScreen> {
-  // Inisialisasi Service dan Repository
-  late final CourseRepository _courseRepository;
-  late Future<List<Course>> _futureCourses;
-
+class _AsyncStateScreenState extends State<AsyncStateScreen> {
   @override
   void initState() {
     super.initState();
-    final courseService = CourseService();
-    _courseRepository = CourseRepository(courseService);
-    
-    // Mengambil data melalui Repository Pattern
-    _futureCourses = _courseRepository.getCourses();
+    // Memuat data course otomatis ketika screen pertama kali dibuka
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<CourseState>().loadCourses();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    // Membaca state reaktif dari CourseState
     final courseState = context.watch<CourseState>();
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer v2 (Repository Pattern)'),
+        title: const Text('Course Explorer v2 (Async State)'),
         elevation: 0,
       ),
       body: Padding(
@@ -75,7 +82,7 @@ class _RepositoryTestScreenState extends State<RepositoryTestScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.indigo.shade800, Colors.indigo.shade500],
+                  colors: [Colors.deepOrange.shade800, Colors.deepOrange.shade500],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -83,7 +90,7 @@ class _RepositoryTestScreenState extends State<RepositoryTestScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tahap 10: Repository Pattern & Abstraksi Data',
+                    'Tahap 11: Async State (Loading, Success, Error)',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 4),
@@ -106,31 +113,52 @@ class _RepositoryTestScreenState extends State<RepositoryTestScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Daftar Kursus Dimuat Melalui CourseRepository:',
+              'Daftar Kursus (Managed by Provider):',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 8),
 
+            // Mengelola Tampilan UI Berdasarkan Status Async (Loading, Error, atau Success)
             Expanded(
-              child: FutureBuilder<List<Course>>(
-                future: _futureCourses,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
-                  } else if (snapshot.hasError) {
-                    return Center(
-                      child: Text('Gagal memuat data: ${snapshot.error}'),
+              child: Builder(
+                builder: (context) {
+                  // 1. Kondisi Loading
+                  if (courseState.isLoading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
                     );
-                  } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                    return const Center(child: Text('Tidak ada data course.'));
                   }
 
-                  final courses = snapshot.data!;
+                  // 2. Kondisi Error
+                  if (courseState.error != null) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                          const SizedBox(height: 8),
+                          Text('Terjadi Kesalahan: ${courseState.error}'),
+                          const SizedBox(height: 12),
+                          ElevatedButton(
+                            onPressed: () => courseState.loadCourses(),
+                            child: const Text('Coba Lagi'),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
 
+                  // 3. Kondisi Kosong
+                  if (courseState.courses.isEmpty) {
+                    return const Center(child: Text('Tidak ada kursus tersedia.'));
+                  }
+
+                  // 4. Kondisi Success (Data Berhasil Dimuat)
+                  final courses = courseState.courses;
                   return ListView.builder(
                     itemCount: courses.length,
                     itemBuilder: (context, index) {
-                      final course = courses[index];
+                      final Course course = courses[index];
                       
                       Color statusColor = Colors.orange;
                       if (course.status == 'done') statusColor = Colors.green;
