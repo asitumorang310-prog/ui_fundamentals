@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/course_provider.dart';
 import 'models/course.dart';
-import 'services/course_service.dart'; // Mengimpor CourseService
-
-// Identitas Wajib
+import 'services/course_service.dart';
+import 'repositories/course_repository.dart';
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
@@ -24,32 +23,36 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Course Explorer - Tahap 9',
+      title: 'Course Explorer - Tahap 10',
       theme: ThemeData(
         useMaterial3: true,
-        colorSchemeSeed: Colors.deepPurple,
+        colorSchemeSeed: Colors.indigo,
       ),
-      home: const ServiceTestScreen(),
+      home: const RepositoryTestScreen(),
     );
   }
 }
 
-class ServiceTestScreen extends StatefulWidget {
-  const ServiceTestScreen({super.key});
+class RepositoryTestScreen extends StatefulWidget {
+  const RepositoryTestScreen({super.key});
 
   @override
-  State<ServiceTestScreen> createState() => _ServiceTestScreenState();
+  State<RepositoryTestScreen> createState() => _RepositoryTestScreenState();
 }
 
-class _ServiceTestScreenState extends State<ServiceTestScreen> {
-  final CourseService _courseService = CourseService();
+class _RepositoryTestScreenState extends State<RepositoryTestScreen> {
+  // Inisialisasi Service dan Repository
+  late final CourseRepository _courseRepository;
   late Future<List<Course>> _futureCourses;
 
   @override
   void initState() {
     super.initState();
-    // Menguji service saat widget pertama kali diinisialisasi
-    _futureCourses = _courseService.loadCourses();
+    final courseService = CourseService();
+    _courseRepository = CourseRepository(courseService);
+    
+    // Mengambil data melalui Repository Pattern
+    _futureCourses = _courseRepository.getCourses();
   }
 
   @override
@@ -58,7 +61,7 @@ class _ServiceTestScreenState extends State<ServiceTestScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer v2 (Service JSON)'),
+        title: const Text('Course Explorer v2 (Repository Pattern)'),
         elevation: 0,
       ),
       body: Padding(
@@ -72,7 +75,7 @@ class _ServiceTestScreenState extends State<ServiceTestScreen> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.deepPurple.shade800, Colors.deepPurple.shade500],
+                  colors: [Colors.indigo.shade800, Colors.indigo.shade500],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -80,7 +83,7 @@ class _ServiceTestScreenState extends State<ServiceTestScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tahap 9: Service & Local JSON Data Source',
+                    'Tahap 10: Repository Pattern & Abstraksi Data',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 4),
@@ -103,12 +106,11 @@ class _ServiceTestScreenState extends State<ServiceTestScreen> {
             ),
             const SizedBox(height: 10),
             const Text(
-              'Daftar Kursus Dimuat dari CourseService:',
+              'Daftar Kursus Dimuat Melalui CourseRepository:',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 8),
 
-            // Menggunakan FutureBuilder untuk menangani data asynchronous dari Service
             Expanded(
               child: FutureBuilder<List<Course>>(
                 future: _futureCourses,
