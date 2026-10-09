@@ -6,9 +6,7 @@ const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
 class CourseService {
-  // Method untuk memuat data course dari file JSON asset
   Future<List<Course>> loadCourses() async {
-    // Membaca file string dari assets
     final jsonString = await rootBundle.loadString(
       'assets/data/student_data.json',
     );
