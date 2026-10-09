@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
+import 'favorites_page.dart';
 
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
@@ -28,8 +29,20 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Course Explorer v2 (Refactored)'),
+        title: const Text('Course Explorer v2 (Shared State)'),
         elevation: 0,
+        actions: [
+          // Tombol navigasi menuju halaman Favorites
+          IconButton(
+            icon: const Icon(Icons.favorite, color: Colors.pink),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FavoritesPage()),
+              );
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -41,7 +54,7 @@ class _HomePageState extends State<HomePage> {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.blueGrey.shade800, Colors.blueGrey.shade500],
+                  colors: [Colors.indigo.shade800, Colors.indigo.shade500],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -49,7 +62,7 @@ class _HomePageState extends State<HomePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tahap 12: Separation of Concerns & Refactor',
+                    'Tahap 13: Shared Favorites antar Screen',
                     style: TextStyle(color: Colors.white70, fontSize: 13),
                   ),
                   const SizedBox(height: 4),
@@ -65,13 +78,28 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(
-              'Total Favorit Dipilih: ${courseState.favorites.length}',
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Total Favorit: ${courseState.favorites.length}',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                TextButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const FavoritesPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.list_alt, size: 16),
+                  label: const Text('Lihat Favorit'),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             const Text(
-              'Daftar Kursus (Modular Structure):',
+              'Daftar Seluruh Mata Kuliah:',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             ),
             const SizedBox(height: 8),
