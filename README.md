@@ -1,3 +1,5 @@
+<!-- Praktikum Selesai - 2415051042 -->
+
 # Course Explorer v2
 
 Aplikasi Course Explorer v2 dibangun dengan menerapkan prinsip *Clean Architecture* dan *Separation of Concerns* menggunakan Flutter dan Provider.
