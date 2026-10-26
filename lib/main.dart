@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'api_get_test.dart';
 import 'package:provider/provider.dart';
 import 'services/course_service.dart';
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
 import 'screens/home_page.dart';
+
 
 void main() {
   runApp(
@@ -22,7 +24,10 @@ void main() {
       child: const MyApp(),
     ),
   );
+
+  testFetchCourses();
 }
+
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
