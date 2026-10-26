@@ -15,6 +15,23 @@ class CourseState extends ChangeNotifier {
   bool isLoading = false;
   String? error;
 
+  bool _isSaving = false;
+  bool get isSaving => _isSaving;
+
+Future<bool> addCourse(Course course) async {
+  _isSaving = true;
+  try {
+    await repository.createCourse(course);
+    await loadCourses(); // Refresh list setelah berhasil
+    _isSaving = false;
+    notifyListeners();
+    return true;
+  } catch (e) {
+    _isSaving = false;
+    notifyListeners();
+    return false;
+  }
+}
   // Collection untuk favorites lintas screen
   final Set<String> favorites = {};
 

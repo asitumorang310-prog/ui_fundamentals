@@ -4,6 +4,7 @@ import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
 import '../widgets/error_view.dart';
 import 'favorites_page.dart';
+import 'course_form_page.dart'; // Jangan lupa import halaman form tambah course
 
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
@@ -142,6 +143,17 @@ class _HomePageState extends State<HomePage> {
         elevation: 0,
       ),
       body: pages[_currentIndex],
+      // FloatingActionButton ditambahkan di sini agar tombol "Tambah Course" muncul di aplikasi
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const CourseFormPage()),
+          );
+        },
+        label: const Text('Tambah Course'),
+        icon: const Icon(Icons.add),
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
