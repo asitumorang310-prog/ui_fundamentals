@@ -1,16 +1,16 @@
 import '../models/course.dart';
-import '../services/course_service.dart';
+import '../services/course_api_service.dart'; 
 
 // Identitas Wajib
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
 class CourseRepository {
-  final CourseService service;
+  final CourseApiService apiService; 
 
-  CourseRepository(this.service);
+  CourseRepository(this.apiService);
 
   Future<List<Course>> getCourses() {
-    return service.loadCourses();
+    return apiService.getCourses(); 
   }
 }
