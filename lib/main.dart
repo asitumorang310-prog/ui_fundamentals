@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'api_get_test.dart';
 import 'package:provider/provider.dart';
-import 'services/course_service.dart';
+import 'services/course_api_service.dart';
 import 'repositories/course_repository.dart';
 import 'providers/course_provider.dart';
 import 'screens/home_page.dart';
 
+const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
 
 void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider<CourseService>(create: (_) => CourseService()),
-        ProxyProvider<CourseService, CourseRepository>(
+        Provider<CourseApiService>(
+          create: (_) => CourseApiService(apiBaseUrl),
+        ),
+        ProxyProvider<CourseApiService, CourseRepository>(
           update: (_, service, __) => CourseRepository(service),
         ),
         ChangeNotifierProxyProvider<CourseRepository, CourseState>(
@@ -24,10 +26,7 @@ void main() {
       child: const MyApp(),
     ),
   );
-
-  testFetchCourses();
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

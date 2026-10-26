@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/course_provider.dart';
 import '../widgets/course_card.dart';
+import '../widgets/error_view.dart';
 import 'favorites_page.dart';
 
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
@@ -32,7 +33,7 @@ class _HomePageState extends State<HomePage> {
     final totalFavorites = courseState.favorites.length;
 
     final List<Widget> pages = [
-      // Tab 0: Home / Dashboard Overview (Boleh pakai SingleChildScrollView)
+      // Tab 0: Home / Dashboard Overview
       SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -46,9 +47,9 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: Colors.blue.shade100),
               ),
-              child: Text(
+              child: const Text(
                 '$studentId • $studentName',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFF0D3B66),
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -109,13 +110,12 @@ class _HomePageState extends State<HomePage> {
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Color(0xFF0D3B66)),
             ),
             const SizedBox(height: 10),
-            // Di tab Home, tidak perlu scroll mandiri karena dibungkus SingleChildScrollView
             _buildCourseListBody(courseState, isScrollable: false),
           ],
         ),
       ),
 
-      // Tab 1: Full Courses List (Menggunakan Expanded agar bisa di-scroll dengan bebas)
+      // Tab 1: Full Courses List
       Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -160,16 +160,30 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  // Fungsi builder list dengan parameter pengatur scroll
   Widget _buildCourseListBody(CourseState courseState, {required bool isScrollable}) {
     if (courseState.isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
     }
+    
     if (courseState.error != null) {
-      return Center(child: Text('Terjadi error: ${courseState.error}'));
+      return ErrorView(
+        message: courseState.error!,
+        onRetry: () => courseState.loadCourses(),
+      );
     }
+    
     if (courseState.courses.isEmpty) {
-      return const Center(child: Text('Belum ada data course.'));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('Data course belum tersedia'),
+        ),
+      );
     }
 
     return ListView.builder(
