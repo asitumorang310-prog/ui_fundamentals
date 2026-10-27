@@ -64,4 +64,16 @@ Future<bool> addCourse(Course course) async {
   bool isFavorite(String id) {
     return favorites.contains(id);
   }
+
+  Future<bool> editCourse(int id, Course course) async {
+  try {
+    await repository.updateCourse(id, course);
+    await loadCourses(); // Refresh list setelah berhasil
+    notifyListeners();
+    return true;
+  } catch (e) {
+    notifyListeners();
+    return false;
+  }
+  }
 }

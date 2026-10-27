@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../screens/course_detail_page.dart';
+import '../screens/course_edit_page.dart'; // Jangan lupa import halaman edit
 
 class CourseCard extends StatelessWidget {
   const CourseCard({super.key, required this.course});
@@ -54,19 +55,36 @@ class CourseCard extends StatelessWidget {
             ),
           ],
         ),
-        trailing: Consumer<CourseState>(
-          builder: (context, state, child) {
-            final isFav = state.isFavorite(course.code);
-            return IconButton(
-              icon: Icon(
-                isFav ? Icons.favorite : Icons.favorite_border,
-                color: Colors.pink,
-              ),
+        // Menggabungkan tombol Edit dan Favorite di bagian trailing
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.edit, size: 20, color: Colors.blue),
               onPressed: () {
-                context.read<CourseState>().toggleFavorite(course.code);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => CourseEditPage(course: course),
+                  ),
+                );
               },
-            );
-          },
+            ),
+            Consumer<CourseState>(
+              builder: (context, state, child) {
+                final isFav = state.isFavorite(course.code);
+                return IconButton(
+                  icon: Icon(
+                    isFav ? Icons.favorite : Icons.favorite_border,
+                    color: Colors.pink,
+                  ),
+                  onPressed: () {
+                    context.read<CourseState>().toggleFavorite(course.code);
+                  },
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
