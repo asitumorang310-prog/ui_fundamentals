@@ -2,7 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course.dart';
 import 'course_data_source.dart';
 
-const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
+const String studentName = 'Amelia Elsa Syah Fitri';
 const String studentId = '2415051042';
 
 class CourseSupabaseService implements CourseDataSource {
