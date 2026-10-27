@@ -17,13 +17,11 @@ const String apiBaseUrl = 'https://course-api-pearl.vercel.app';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Supabase sebelum runApp
   await Supabase.initialize(
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
 
-  // Menggunakan API service dengan URL yang dibungkus tanda kutip
   final CourseDataSource dataSource = CourseApiService(apiBaseUrl);
   final repository = CourseRepository(dataSource);
 
