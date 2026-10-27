@@ -40,25 +40,27 @@ class _CourseFormPageState extends State<CourseFormPage> {
       status: _selectedStatus,
     );
 
-    // Mengirim data melalui Provider (CourseState) sesuai aturan arsitektur
-    final courseState = context.read<CourseState>();
-    final success = await courseState.addCourse(newCourse);
+    try {
+      final courseState = context.read<CourseState>();
+      await courseState.repository.createCourse(newCourse);
+      await courseState.loadCourses();
 
-    if (!mounted) return;
-
-    setState(() {
-      _isSaving = false;
-    });
-
-    if (success) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Course berhasil ditambahkan!')),
       );
       Navigator.pop(context);
-    } else {
+    } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Gagal menambahkan course. Coba lagi.')),
+        SnackBar(content: Text('Gagal menambah course: $e')),
       );
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
@@ -66,7 +68,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Tambah Course Baru', style: TextStyle(color: Colors.white)),
+        title: const Text('Tambah Course Baru'),
         backgroundColor: Colors.blue.shade700,
       ),
       body: Padding(
@@ -119,11 +121,7 @@ class _CourseFormPageState extends State<CourseFormPage> {
                 onPressed: _isSaving ? null : _submitForm,
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.blue.shade700),
                 child: _isSaving
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                      )
+                    ? const CircularProgressIndicator(color: Colors.white)
                     : const Text('Simpan Course', style: TextStyle(color: Colors.white)),
               ),
             ],
