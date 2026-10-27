@@ -2,7 +2,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course.dart';
 import 'course_data_source.dart';
 
-// Identitas Wajib
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
