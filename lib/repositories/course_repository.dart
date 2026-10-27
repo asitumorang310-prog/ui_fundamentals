@@ -22,4 +22,8 @@ class CourseRepository {
   return apiService.updateCourse(id, course);
   }
 
+  Future<void> deleteCourse(int id) {
+  return apiService.deleteCourse(id);
+  }
+
 }

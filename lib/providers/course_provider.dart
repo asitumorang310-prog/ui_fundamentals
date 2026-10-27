@@ -76,4 +76,23 @@ Future<bool> addCourse(Course course) async {
     return false;
   }
   }
+
+  Future<bool> removeCourse(int id, String code) async {
+  try {
+    await repository.deleteCourse(id);
+    
+    // Hapus juga dari favorites jika course tersebut ada di dalamnya
+    if (favorites.contains(code)) {
+      favorites.remove(code);
+    }
+    
+    await loadCourses(); // Refresh list setelah berhasil
+    notifyListeners();
+    return true;
+  } catch (e) {
+    notifyListeners();
+    return false;
+  }
+  }
+
 }

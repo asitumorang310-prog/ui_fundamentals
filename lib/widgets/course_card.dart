@@ -3,12 +3,56 @@ import 'package:provider/provider.dart';
 import '../models/course.dart';
 import '../providers/course_provider.dart';
 import '../screens/course_detail_page.dart';
-import '../screens/course_edit_page.dart'; // Jangan lupa import halaman edit
+import '../screens/course_edit_page.dart';
 
 class CourseCard extends StatelessWidget {
   const CourseCard({super.key, required this.course});
 
   final Course course;
+
+  // Fungsi untuk menampilkan dialog konfirmasi penghapusan
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Konfirmasi Hapus'),
+          content: Text('Apakah Anda yakin ingin menghapus course "${course.title}"?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.pop(dialogContext); // Tutup dialog dulu
+
+                if (course.id == null) return;
+
+                // Jalankan proses hapus melalui provider
+                final courseState = context.read<CourseState>();
+                final success = await courseState.removeCourse(course.id!, course.code);
+
+                // Periksa context.mounted sebelum menggunakan context setelah await
+                if (!context.mounted) return;
+
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Course berhasil dihapus!')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal menghapus course. Coba lagi.')),
+                  );
+                }
+              },
+              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +66,6 @@ class CourseCard extends StatelessWidget {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        // Ketika card diklik, pindah ke halaman Detail
         onTap: () {
           Navigator.push(
             context,
@@ -55,7 +98,7 @@ class CourseCard extends StatelessWidget {
             ),
           ],
         ),
-        // Menggabungkan tombol Edit dan Favorite di bagian trailing
+        // Menambahkan tombol Edit, Delete, dan Favorite di bagian trailing
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -69,6 +112,10 @@ class CourseCard extends StatelessWidget {
                   ),
                 );
               },
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete, size: 20, color: Colors.red),
+              onPressed: () => _confirmDelete(context),
             ),
             Consumer<CourseState>(
               builder: (context, state, child) {
