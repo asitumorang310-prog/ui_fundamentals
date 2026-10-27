@@ -1,4 +1,3 @@
-// lib/services/course_supabase_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/course.dart';
 import 'course_data_source.dart';
@@ -12,7 +11,6 @@ class CourseSupabaseService implements CourseDataSource {
 
   @override
   Future<List<Course>> getCourses() async {
-    // Mengambil data dari tabel courses di Supabase dan mengurutkannya berdasarkan ID
     final data = await supabase
         .from('courses')
         .select()
@@ -23,13 +21,30 @@ class CourseSupabaseService implements CourseDataSource {
         .toList();
   }
 
-  // Sementara untuk method lain diberi UnimplementedError agar memenuhi kontrak CourseDataSource
   @override
-  Future<Course> createCourse(Course course) => throw UnimplementedError();
+  Future<Course> createCourse(Course course) async {
+    final row = await supabase
+        .from('courses')
+        .insert(course.toJson())
+        .select()
+        .single();
+
+    return Course.fromJson(row);
+  }
 
   @override
-  Future<void> updateCourse(int id, Course course) => throw UnimplementedError();
+  Future<void> updateCourse(int id, Course course) async {
+    await supabase
+        .from('courses')
+        .update(course.toJson())
+        .eq('id', id);
+  }
 
   @override
-  Future<void> deleteCourse(int id) => throw UnimplementedError();
+  Future<void> deleteCourse(int id) async {
+    await supabase
+        .from('courses')
+        .delete()
+        .eq('id', id);
+  }
 }
