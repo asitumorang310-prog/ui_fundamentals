@@ -1,29 +1,19 @@
 import '../models/course.dart';
-import '../services/course_api_service.dart'; 
+import '../services/course_data_source.dart';
 
-// Identitas Wajib
 const String studentName = 'Amelia Elsa Syah Fitri Situmorang';
 const String studentId = '2415051042';
 
 class CourseRepository {
-  final CourseApiService apiService; 
+  CourseRepository(this.dataSource);
 
-  CourseRepository(this.apiService);
+  final CourseDataSource dataSource;
 
+  Future<List<Course>> getCourses() => dataSource.getCourses();
 
-  Future<List<Course>> getCourses() {
-    return apiService.getCourses(); 
-  }
+  Future<Course> createCourse(Course course) => dataSource.createCourse(course);
 
-  Future<Course> createCourse(Course course) {
-  return apiService.createCourse(course);
-  }
-  Future<void> updateCourse(int id, Course course) {
-  return apiService.updateCourse(id, course);
-  }
+  Future<void> updateCourse(int id, Course course) => dataSource.updateCourse(id, course);
 
-  Future<void> deleteCourse(int id) {
-  return apiService.deleteCourse(id);
-  }
-
+  Future<void> deleteCourse(int id) => dataSource.deleteCourse(id);
 }

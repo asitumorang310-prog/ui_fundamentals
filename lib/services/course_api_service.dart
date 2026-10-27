@@ -1,12 +1,14 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/course.dart';
+import 'course_data_source.dart';
 
-class CourseApiService {
+class CourseApiService implements CourseDataSource {
   CourseApiService(this.baseUrl);
 
   final String baseUrl;
 
+  @override
   Future<List<Course>> getCourses() async {
     final response = await http.get(Uri.parse('$baseUrl/courses'));
 
@@ -20,41 +22,44 @@ class CourseApiService {
         .toList();
   }
 
-  Future<void> updateCourse(int id, Course course) async {
-  final response = await http.put(
-    Uri.parse('$baseUrl/courses/$id'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(course.toJson()),
-  );
-
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw Exception('Gagal memperbarui course');
-  }
-}
-
+  @override
   Future<Course> createCourse(Course course) async {
-  final response = await http.post(
-    Uri.parse('$baseUrl/courses'),
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode(course.toJson()),
-  );
-
-  if (response.statusCode == 200 || response.statusCode == 201) {
-    return Course.fromJson(
-      jsonDecode(response.body) as Map<String, dynamic>,
+    final response = await http.post(
+      Uri.parse('$baseUrl/courses'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(course.toJson()),
     );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return Course.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+    }
+
+    throw Exception('Gagal membuat course');
   }
 
-  throw Exception('Gagal membuat course');
+  @override
+  Future<void> updateCourse(int id, Course course) async {
+    final response = await http.put(
+      Uri.parse('$baseUrl/courses/$id'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(course.toJson()),
+    );
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Gagal memperbarui course');
+    }
   }
 
+  @override
   Future<void> deleteCourse(int id) async {
-  final response = await http.delete(
-    Uri.parse('$baseUrl/courses/$id'),
-  );
+    final response = await http.delete(
+      Uri.parse('$baseUrl/courses/$id'),
+    );
 
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw Exception('Gagal menghapus course');
-  }
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('Gagal menghapus course');
+    }
   }
 }
