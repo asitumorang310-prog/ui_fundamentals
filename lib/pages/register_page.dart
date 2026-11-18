@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-
 import '../services/auth_service.dart';
 import 'home_page.dart';
 
@@ -16,6 +15,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailC = TextEditingController();
   final _passC = TextEditingController();
   final _confirmC = TextEditingController();
+  final _nameC = TextEditingController();
+  String _role = 'seeker';
   bool _loading = false;
 
   @override
@@ -23,6 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailC.dispose();
     _passC.dispose();
     _confirmC.dispose();
+    _nameC.dispose();
     super.dispose();
   }
 
@@ -38,17 +40,18 @@ class _RegisterPageState extends State<RegisterPage> {
       final res = await AuthService.instance.register(
         email: _emailC.text.trim(),
         password: _passC.text,
+        name: _nameC.text.trim(),
+        role: _role,
       );
+
       if (!mounted) return;
 
       if (res.session != null) {
-        // Konfirmasi email nonaktif: user langsung login -> ke Home.
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const HomePage()),
           (route) => false,
         );
       } else {
-        // Konfirmasi email aktif: minta user cek email.
         _showMessage('Registrasi berhasil. Silakan cek email Anda.');
         Navigator.of(context).pop();
       }
@@ -64,13 +67,20 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Register')),
+      appBar: AppBar(title: const Text('Register KosFinder')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
           key: _formKey,
           child: ListView(
             children: [
+              TextFormField(
+                controller: _nameC,
+                decoration: const InputDecoration(labelText: 'Nama'),
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Nama wajib diisi' : null,
+              ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _emailC,
                 keyboardType: TextInputType.emailAddress,
@@ -80,6 +90,16 @@ class _RegisterPageState extends State<RegisterPage> {
                   if (!v.contains('@')) return 'Format email tidak valid';
                   return null;
                 },
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: _role,
+                decoration: const InputDecoration(labelText: 'Daftar sebagai'),
+                items: const [
+                  DropdownMenuItem(value: 'seeker', child: Text('Pencari Kos')),
+                  DropdownMenuItem(value: 'owner', child: Text('Pemilik Kos')),
+                ],
+                onChanged: (v) => setState(() => _role = v ?? 'seeker'),
               ),
               const SizedBox(height: 12),
               TextFormField(
