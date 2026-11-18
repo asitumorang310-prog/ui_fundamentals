@@ -1,16 +1,16 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
+﻿import 'package:supabase_flutter/supabase_flutter.dart';
 
 class KosService {
   final SupabaseClient _client = Supabase.instance.client;
 
   String get _uid => _client.auth.currentUser!.id;
 
-  Future<List>> fetchAll() async {
+  Future<List> fetchAll() async {
     final data = await _client
         .from('kos')
         .select()
         .order('created_at', ascending: false);
-    return List>.from(data);
+    return data;
   }
 
   Future<void> add({
@@ -26,14 +26,12 @@ class KosService {
     });
   }
 
-  /// true = berhasil, false = ditolak RLS / data bukan milik sendiri
   Future<bool> update(String id, Map<String, dynamic> values) async {
     final rows =
         await _client.from('kos').update(values).eq('id', id).select();
     return rows.isNotEmpty;
   }
 
-  /// true = berhasil, false = ditolak RLS / data bukan milik sendiri
   Future<bool> delete(String id) async {
     final rows = await _client.from('kos').delete().eq('id', id).select();
     return rows.isNotEmpty;

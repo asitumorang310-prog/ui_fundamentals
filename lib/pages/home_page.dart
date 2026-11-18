@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 import '../services/profile_service.dart';
 import '../widgets/role_guard.dart';
+import 'add_kos_page.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -87,8 +88,16 @@ class _HomePageState extends State<HomePage> {
             role: p.role,
             allowed: const ['owner', 'admin'],
             child: FloatingActionButton.extended(
-              onPressed: () {
-                // TODO: Buka halaman Add Kos
+              onPressed: () async {
+                final result = await Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AddKosPage()),
+                );
+                // Refresh data jika berhasil menambah kos
+                if (result == true) {
+                  setState(() {
+                    _profileFuture = ProfileService().getMyProfile();
+                  });
+                }
               },
               icon: const Icon(Icons.add_home),
               label: const Text('Tambah Kos'),
