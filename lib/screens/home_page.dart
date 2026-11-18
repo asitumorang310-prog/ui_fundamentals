@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    NotificationService.instance.init();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<CourseState>().loadCourses();
     });

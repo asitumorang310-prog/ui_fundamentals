@@ -1,16 +1,27 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'app_keys.dart';
+import 'firebase_options.dart';
 import 'pages/home_page.dart';
 import 'pages/login_page.dart';
 import 'services/auth_service.dart';
+import 'services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Inisialisasi Firebase & Background Handler
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+
   await Supabase.initialize(
     url: 'https://zrzvmvbcavaivqismdto.supabase.co',
-    anonKey: 'sb_publishable_-S1U4PTGwXueX3hqoIl1Ng_NmSzzejY',
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpyenZtdmJjYXZhaXZxaXNtZHRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTMwNDgyNjgsImV4cCI6MjEwODYyNDI2OH0.tittyqWhxWKUrdle7YzEYw6b5gRIl4XdUKt6Pxlq0Qg',
   );
 
   runApp(const KosFinderApp());
@@ -26,22 +37,10 @@ class KosFinderApp extends StatelessWidget {
       theme: ThemeData(colorSchemeSeed: Colors.indigo, useMaterial3: true),
       navigatorKey: navigatorKey,
       scaffoldMessengerKey: messengerKey,
-      // Gunakan FutureBuilder untuk menunggu pemulihan sesi Supabase
-      home: FutureBuilder(
-        future: Future.delayed(const Duration(milliseconds: 100)),
-        builder: (context, snapshot) {
-          // Selagi menunggu sekejap, tampilkan indikator loading agar tidak putih polos
-          if (snapshot.connectionState != ConnectionState.done) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
-          }
-          // Setelah siap, cek apakah user sudah login
-          return AuthService.instance.isLoggedIn
-              ? const HomePage()
-              : const LoginPage();
-        },
-      ),
+      // Cek Session apakah sudah login atau belum
+      home: AuthService.instance.isLoggedIn
+          ? const HomePage()
+          : const LoginPage(),
     );
   }
 }
