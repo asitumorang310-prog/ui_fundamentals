@@ -17,12 +17,12 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   late final Future<UserProfile?> _profileFuture;
 
-  @override
-  void initState() {
-    super.initState();
-    NotificationService.instance.requestPermission();
-    _profileFuture = ProfileService().getMyProfile();
-  }
+@override
+void initState() {
+  super.initState();
+  _profileFuture = ProfileService().getMyProfile();
+  NotificationService.instance.init();
+}
 
   Future<void> _logout() async {
     await AuthService.instance.logout();
