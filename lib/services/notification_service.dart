@@ -67,7 +67,6 @@ class NotificationService {
     if (token != null) await saveTokenToSupabase(token);
     listenTokenRefresh(saveTokenToSupabase);
 
-    // iOS: tampilkan banner saat aplikasi di foreground
     await _messaging.setForegroundNotificationPresentationOptions(
       alert: true,
       badge: true,
