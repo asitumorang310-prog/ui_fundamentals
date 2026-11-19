@@ -20,7 +20,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    NotificationService.instance.init();
+    NotificationService.instance.requestPermission();
     _profileFuture = ProfileService().getMyProfile();
   }
 
